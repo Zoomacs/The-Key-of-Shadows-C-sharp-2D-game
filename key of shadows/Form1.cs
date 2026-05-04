@@ -69,15 +69,15 @@ namespace key_of_shadows
 
             for (int i = 1; i <= 14; i++)
             {
-                if (i <= 8) { hero.walk.Add(new Bitmap("herorun" + i + ".png")); }
-                if (i <= 7) { hero.idle.Add(new Bitmap("heroidle" + i + ".png")); }
-                if (i <= 4) { hero.attack1.Add(new Bitmap("heromeleeattack" + i + ".png")); }
-                if (i <= 8) { hero.attack2.Add(new Bitmap("heroattackfireball" + i + ".png")); }
-                { hero.attack3.Add(new Bitmap("heroflameattack" + i + ".png")); }
-                if (i <= 9) { hero.jump.Add(new Bitmap("herojump" + i + ".png")); }
-                if (i <= 6) { hero.dead.Add(new Bitmap("herodead" + i + ".png")); }
-                if (i <= 3) { hero.hurt.Add(new Bitmap("herohurt" + i + ".png")); }
-                if (i <= 12) { hero.charge.Add(new Bitmap("herocharge" + i + ".png")); }
+                if (i <= 7) { hero.idle.Add(new Bitmap("hero\\idle\\heroidle" + i + ".png")); }
+                if (i <= 8) { hero.walk.Add(new Bitmap("hero\\walk\\herorun" + i + ".png")); }
+                if (i <= 4) { hero.attack1.Add(new Bitmap("hero\\attack1\\heromeleeattack" + i + ".png")); }
+                if (i <= 8) { hero.attack2.Add(new Bitmap("hero\\attack2\\heroattackfireball" + i + ".png")); }
+                { hero.attack3.Add(new Bitmap("hero\\attack3\\heroflameattack" + i + ".png")); }
+                if (i <= 9) { hero.jump.Add(new Bitmap("hero\\jump\\herojump" + i + ".png")); }
+                if (i <= 6) { hero.dead.Add(new Bitmap("hero\\dead\\herodead" + i + ".png")); }
+                if (i <= 3) { hero.hurt.Add(new Bitmap("hero\\hurt\\herohurt" + i + ".png")); }
+                if (i <= 12) { hero.charge.Add(new Bitmap("hero\\charge\\herocharge" + i + ".png")); }
             }
             hero.x = 750;
             hero.y = 750 - hero.walk[0].Height;
@@ -85,11 +85,11 @@ namespace key_of_shadows
 
             for (int i = 1; i <= 12; i++)
             {
-                if (i <= 5) { fa7l.attack1.Add(new Bitmap("attackfa7" + i + ".png")); }
-                if (i <= 5) { fa7l.dead.Add(new Bitmap("deadfa7" + i + ".png")); }
-                if (i <= 3) { fa7l.hurt.Add(new Bitmap("hurtfa7" + i + ".png")); }
-                if (i <= 10) { fa7l.idle.Add(new Bitmap("idlefa7" + i + ".png")); }
-                fa7l.walk.Add(new Bitmap("walkfa7" + i + ".png"));
+                if (i <= 5) { fa7l.attack1.Add(new Bitmap("fa7l\\attack\\attackfa7l" + i + ".png")); }
+                if (i <= 5) { fa7l.dead.Add(new Bitmap("fa7l\\dead\\deadfa7l" + i + ".png")); }
+                if (i <= 3) { fa7l.hurt.Add(new Bitmap("fa7l\\hurt\\hurtfa7l" + i + ".png")); }
+                if (i <= 10) { fa7l.idle.Add(new Bitmap("fa7l\\idle\\idlefa7l" + i + ".png")); }
+                fa7l.walk.Add(new Bitmap("fa7l\\walk\\walkfa7l" + i + ".png"));
             }
             fa7l.x = 1150;
             fa7l.y = 700 - fa7l.idle[0].Height;
@@ -97,47 +97,47 @@ namespace key_of_shadows
 
             for (int i = 1; i <= 15; i++)
             {
-                skearch.attack1.Add(new Bitmap("skearchattack" + i + ".png"));
-                if (i <= 5) { skearch.dead.Add(new Bitmap("skearchdead" + i + ".png")); }
-                if (i <= 2) { skearch.hurt.Add(new Bitmap("skearchhurt" + i + ".png")); }
-                if (i <= 7) { skearch.idle.Add(new Bitmap("skearchidle" + i + ".png")); }
-                if (i <= 8) { skearch.walk.Add(new Bitmap("skearchwalk" + i + ".png")); }
+                skearch.attack1.Add(new Bitmap("skearch\\attack\\skearchattack" + i + ".png"));
+                if (i <= 5) { skearch.dead.Add(new Bitmap("skearch\\dead\\skearchdead" + i + ".png")); }
+                if (i <= 2) { skearch.hurt.Add(new Bitmap("skearch\\hurt\\skearchhurt" + i + ".png")); }
+                if (i <= 7) { skearch.idle.Add(new Bitmap("skearch\\idle\\skearchidle" + i + ".png")); }
+                if (i <= 8) { skearch.walk.Add(new Bitmap("skearch\\walk\\skearchwalk" + i + ".png")); }
             }
 
             for (int i = 1; i <= 7; i++)
             {
-                skespe.idle.Add(new Bitmap("skespeidle" + i + ".png"));
-                skespe.walk.Add(new Bitmap("skespewalk" + i + ".png"));
-                if (i <= 6) { skespe.walk.Add(new Bitmap("skesperun" + i + ".png")); }
+                skespe.idle.Add(new Bitmap("skespe\\idle\\skespeidle" + i + ".png"));
+                skespe.walk.Add(new Bitmap("skespe\\walk\\skespewalk" + i + ".png"));
+                if (i <= 6) { skespe.walk.Add(new Bitmap("skespe\\run\\skesperun" + i + ".png")); }
                 if (i <= 5)
                 {
-                    skespe.dead.Add(new Bitmap("skespedead" + i + ".png"));
-                    skespe.attack2.Add(new Bitmap("skesperunattack" + i + ".png"));
+                    skespe.dead.Add(new Bitmap("skespe\\dead\\skespedead" + i + ".png"));
+                    skespe.attack2.Add(new Bitmap("skespe\\attack+run\\skesperunattack" + i + ".png"));
                 }
                 if (i <= 4)
                 {
-                    skespe.attack1.Add(new Bitmap("skespeattack" + i + ".png"));
-                    skespe.charge.Add(new Bitmap("Arrow" + i + ".png"));
+                    skespe.attack1.Add(new Bitmap("skespe\\attack\\skespeattack" + i + ".png"));
+                    skespe.charge.Add(new Bitmap("skespe\\Arrow.png"));
                 }
-                if (i <= 3) { skespe.hurt.Add(new Bitmap("skespehurt" + i + ".png")); }
+                if (i <= 3) { skespe.hurt.Add(new Bitmap("skespe\\hurt\\skespehurt" + i + ".png")); }
             }
 
             for (int i = 1; i <= 7; i++)
             {
-                skewar.idle.Add(new Bitmap("skewaridle" + i + ".png"));
-                skewar.walk.Add(new Bitmap("skewarwalk" + i + ".png"));
-                if (i <= 5) { skewar.attack1.Add(new Bitmap("skewarattack" + i + ".png")); }
-                if (i <= 4) { skewar.dead.Add(new Bitmap("skewardead" + i + ".png")); }
-                if (i <= 2) { skewar.hurt.Add(new Bitmap("skewarhurt" + i + ".png")); }
+                skewar.idle.Add(new Bitmap("skewar\\idle\\skewaridle" + i + ".png"));
+                skewar.walk.Add(new Bitmap("skewar\\walk\\skewarwalk" + i + ".png"));
+                if (i <= 5) { skewar.attack1.Add(new Bitmap("skewar\\attack\\skewarattack" + i + ".png")); }
+                if (i <= 4) { skewar.dead.Add(new Bitmap("skewar\\dead\\skewardead" + i + ".png")); }
+                if (i <= 2) { skewar.hurt.Add(new Bitmap("skewar\\hurt\\skewarhurt" + i + ".png")); }
             }
 
             for (int i = 1; i <= 8; i++)
             {
-                if (i <= 8) { demon.attack1.Add(new Bitmap("demonattack" + i + ".png")); }
-                if (i <= 6) { demon.dead.Add(new Bitmap("demondead" + i + ".png")); }
-                if (i <= 4) { demon.walk.Add(new Bitmap("demonfly" + i + ".png")); }
-                if (i <= 4) { demon.hurt.Add(new Bitmap("demonhurt" + i + ".png")); }
-                if (i <= 4) { demon.idle.Add(new Bitmap("demonideal" + i + ".png")); }
+                if (i <= 8) { demon.attack1.Add(new Bitmap("demon\\attack\\demonattack" + i + ".png")); }
+                if (i <= 6) { demon.dead.Add(new Bitmap("demon\\dead\\demondead" + i + ".png")); }
+                if (i <= 4) { demon.walk.Add(new Bitmap("demon\\fly\\demonfly" + i + ".png")); }
+                if (i <= 4) { demon.hurt.Add(new Bitmap("demon\\hurt\\demonhurt" + i + ".png")); }
+                if (i <= 4) { demon.idle.Add(new Bitmap("demon\\idle\\demonideal" + i + ".png")); }
             }
 
         }
@@ -224,7 +224,7 @@ namespace key_of_shadows
             {
                 int frameToDraw = hero.cf;
 
-                if (hero.state == 0)
+                if (hero.state == 0 && hero.idle.Count > frameToDraw)
                 {
                     g2.DrawImage(hero.idle[frameToDraw], hero.x, hero.y);
                 }
