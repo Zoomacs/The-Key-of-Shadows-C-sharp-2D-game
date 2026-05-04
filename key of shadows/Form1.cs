@@ -30,6 +30,7 @@ namespace key_of_shadows
     {
         int count = 0;
         bool animation = false;
+        bool isattack = false;
         Bitmap off;
         Timer tt = new Timer();
         actor hero = new actor();
@@ -44,6 +45,7 @@ namespace key_of_shadows
             WindowState = FormWindowState.Maximized;
             KeyDown += Form1_KeyDown;
             KeyUp += Form1_KeyUp;
+            MouseDown += Form1_MouseDown;
             Paint += Form1_Paint;
             Load += Form1_Load1;
             BackColor = Color.LightBlue;
@@ -51,6 +53,7 @@ namespace key_of_shadows
             tt.Interval = 100;
             tt.Start();
         }
+
 
         private void Tt_Tick(object sender, EventArgs e)
         {
@@ -80,7 +83,7 @@ namespace key_of_shadows
                 if (i <= 12) { hero.charge.Add(new Bitmap("hero\\charge\\herocharge" + i + ".png")); }
             }
             hero.x = 750;
-            hero.y = 750 - hero.walk[0].Height;
+            hero.y = 723 - hero.walk[0].Height;
             hero.state = 0;
 
             for (int i = 1; i <= 12; i++)
@@ -92,7 +95,7 @@ namespace key_of_shadows
                 fa7l.walk.Add(new Bitmap("fa7l\\walk\\walkfa7l" + i + ".png"));
             }
             fa7l.x = 1150;
-            fa7l.y = 700 - fa7l.idle[0].Height;
+            fa7l.y = 723 - fa7l.walk[0].Height;
             fa7l.state = -1;
 
             for (int i = 1; i <= 15; i++)
@@ -143,13 +146,17 @@ namespace key_of_shadows
         }
         private void Form1_KeyUp(object sender, KeyEventArgs e)
         {
-            hero.state = 0;
-            hero.cf = 0;
+            if (hero.state == 1)
+            {
+                hero.state = 0;
+                hero.cf = 0;
+            }
+
         }
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Left || e.KeyCode == Keys.Right)
+            if (e.KeyCode == Keys.A || e.KeyCode == Keys.D && !isattack)
             {
                 if (hero.state != 1)
                 {
@@ -157,8 +164,8 @@ namespace key_of_shadows
                     hero.state = 1;
                 }
 
-                if (e.KeyCode == Keys.Left) hero.x -= 10;
-                if (e.KeyCode == Keys.Right) hero.x += 10;
+                if (e.KeyCode == Keys.A) hero.x -= 10;
+                if (e.KeyCode == Keys.D) hero.x += 10;
                 hero.cf++;
                 if (hero.cf >= 8)
                 {
@@ -198,6 +205,15 @@ namespace key_of_shadows
             }
             drawdubb(this.CreateGraphics());
         }
+        private void Form1_MouseDown(object sender, MouseEventArgs e)
+        {
+            if(e.Button == MouseButtons.Left && isattack == false)
+            {
+                isattack = true;
+                hero.state = 5;
+                hero.cf = 0;
+            }
+        }
 
         private void Form1_Paint(object sender, PaintEventArgs e)
         {
@@ -231,6 +247,10 @@ namespace key_of_shadows
                 else if (hero.state == 1)
                 {
                     g2.DrawImage(hero.walk[frameToDraw], hero.x, hero.y);
+                }
+                else if (hero.state == 5)
+                {
+                    g2.DrawImage(hero.attack1[frameToDraw], hero.x, hero.y);
                 }
                 if (fa7l.state == 0) { g2.DrawImage(fa7l.idle[fa7l.cf], fa7l.x, fa7l.y); }
                 else if (fa7l.state == 5) { g2.DrawImage(fa7l.attack1[fa7l.cf], fa7l.x, fa7l.y); }
@@ -274,6 +294,16 @@ namespace key_of_shadows
                     animation = false;
                 }
             }
+            if (hero.state == 5)
+            {
+                hero.cf++;
+                if (hero.cf >= 4)
+                {
+                    hero.cf = 0;
+                    hero.state = 0;
+                    isattack = false;
+                }
+            }
         }
         void walking()
         {
@@ -283,7 +313,7 @@ namespace key_of_shadows
                 if (fa7l.cf >= 12)
                 {
                     fa7l.cf--;
-                    animation = false;
+                    
                 }
             }
         }
