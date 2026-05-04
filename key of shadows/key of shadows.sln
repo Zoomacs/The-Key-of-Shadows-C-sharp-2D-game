@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.37206.5
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "key of shadows", "key of shadows.csproj", "{37847F30-6792-4DE5-9AEB-AC8AA8B78C14}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{37847F30-6792-4DE5-9AEB-AC8AA8B78C14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{37847F30-6792-4DE5-9AEB-AC8AA8B78C14}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{37847F30-6792-4DE5-9AEB-AC8AA8B78C14}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{37847F30-6792-4DE5-9AEB-AC8AA8B78C14}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F8D01824-9D61-4D79-A36A-5176BA34072C}
+	EndGlobalSection
+EndGlobal
