@@ -16,6 +16,9 @@ namespace key_of_shadows
         public int w, d;
         public int state;
         public int cf;
+        public int health;
+        public bool gothit = false;
+        public bool isdead = false;
         public List<Bitmap> idle = new List<Bitmap>();
         public List<Bitmap> walk = new List<Bitmap>();
         public List<Bitmap> jump = new List<Bitmap>();
@@ -29,7 +32,6 @@ namespace key_of_shadows
     public partial class Form1 : Form
     {
         int count = 0;
-        bool animation = false;
         bool isattack = false;
         Bitmap off;
         Timer tt = new Timer();
@@ -58,12 +60,14 @@ namespace key_of_shadows
         private void Tt_Tick(object sender, EventArgs e)
         {
             count++;
-            idle();
+            idle(hero);
+            idle(fa7l);
             walking();
             attack();
             dead();
             hurt();
             drawdubb(this.CreateGraphics());
+            enemyhitcheck();
         }
 
         private void Form1_Load1(object sender, EventArgs e)
@@ -96,7 +100,8 @@ namespace key_of_shadows
             }
             fa7l.x = 1150;
             fa7l.y = 723 - fa7l.walk[0].Height;
-            fa7l.state = -1;
+            fa7l.state = 0;
+            fa7l.health = 11;
 
             for (int i = 1; i <= 15; i++)
             {
@@ -156,8 +161,8 @@ namespace key_of_shadows
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.A || e.KeyCode == Keys.D && !isattack)
-            {
+            if (e.KeyCode == Keys.A || e.KeyCode == Keys.D)
+            {    
                 if (hero.state != 1)
                 {
                     hero.cf = 0;
@@ -172,42 +177,10 @@ namespace key_of_shadows
                     hero.cf = 0;
                 }
             }
-            if (e.KeyCode == Keys.Q)
-            {
-                animation = true;
-                fa7l.state = 5;
-                fa7l.cf = 0;
-            }
-            if (e.KeyCode == Keys.W)
-            {
-                animation = true;
-                fa7l.state = 3;
-                fa7l.cf = 0;
-            }
-            if (e.KeyCode == Keys.E)
-            {
-                animation = true;
-                fa7l.state = 4;
-                fa7l.cf = 0;
-            }
-            if (e.KeyCode == Keys.R)
-            {
-                animation = true;
-                fa7l.state = 0;
-                fa7l.cf = 0;
-            }
-            if (e.KeyCode == Keys.T)
-            {
-
-                animation = true;
-                fa7l.state = 1;
-                fa7l.cf = 0;
-            }
-            drawdubb(this.CreateGraphics());
         }
         private void Form1_MouseDown(object sender, MouseEventArgs e)
         {
-            if(e.Button == MouseButtons.Left && isattack == false)
+            if(e.Button == MouseButtons.Left)
             {
                 isattack = true;
                 hero.state = 5;
@@ -260,38 +233,26 @@ namespace key_of_shadows
                 else { g2.DrawImage(fa7l.idle[0], fa7l.x, fa7l.y); }
             }
         }
-        void idle()
+        void idle(actor actor)
         {
-            if (hero.state == 0)
+            if (actor.state == 0)
             {
-                hero.cf++;
-                if (hero.cf >= 8)
+                actor.cf++;
+                if (actor.cf >= actor.idle.Count)
                 {
-                    hero.cf = 0;
+                    actor.cf = 0;
                 }
             }
-
-            if (fa7l.state == 0 && animation)
-            {
-                fa7l.cf++;
-                if (fa7l.cf >= 10)
-                {
-                    fa7l.cf--;
-                    animation = false;
-                }
-            }
-
-
         }
         void attack()
         {
-            if (fa7l.state == 5 && animation)
+            if (fa7l.state == 5)
             {
                 fa7l.cf++;
                 if (fa7l.cf >= 5)
                 {
-                    fa7l.cf--;
-                    animation = false;
+                    fa7l.cf = 0;
+                    fa7l.state = 0;
                 }
             }
             if (hero.state == 5)
@@ -307,7 +268,7 @@ namespace key_of_shadows
         }
         void walking()
         {
-            if (fa7l.state == 1 && animation)
+            if (fa7l.state == 1)
             {
                 fa7l.cf++;
                 if (fa7l.cf >= 12)
@@ -319,25 +280,50 @@ namespace key_of_shadows
         }
         void hurt()
         {
-            if (fa7l.state == 3 && animation)
+            if (fa7l.state == 3)
             {
                 fa7l.cf++;
                 if (fa7l.cf >= 3)
                 {
-                    fa7l.cf--;
-                    animation = false;
+                    fa7l.cf = 0;
+                    fa7l.state = 0;
+                    fa7l.gothit = false;
                 }
+            }
+        }
+        void enemyhitcheck()
+        {
+            if (hero.state == 5 && hero.x + hero.attack1[hero.cf].Width > fa7l.x && fa7l.x > hero.x && isattack)
+            {
+                if (!fa7l.gothit)
+                {
+                    fa7l.health -= 10;
+                    fa7l.gothit = true;
+                    deadcheck(fa7l);
+                }
+            }
+        }
+        void deadcheck(actor enemy)
+        {
+            if (enemy.health > 0)
+            {
+                enemy.state = 3;
+            }
+            else if (enemy.health < 0)
+            {
+                enemy.state = 4;
+                enemy.cf = 0;
+                fa7l.isdead = true;
             }
         }
         void dead()
         {
-            if (fa7l.state == 4 && animation)
+            if (fa7l.state == 4  && fa7l.isdead)
             {
                 fa7l.cf++;
-                if (fa7l.cf >= 5)
+                if (fa7l.cf >= fa7l.dead.Count)
                 {
-                    fa7l.cf--;
-                    animation = false;
+                    fa7l.cf = fa7l.dead.Count - 1;
                 }
             }
         }
