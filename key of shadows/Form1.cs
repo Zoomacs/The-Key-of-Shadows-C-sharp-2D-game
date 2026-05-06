@@ -160,7 +160,7 @@ namespace key_of_shadows
         }
         void DrawBackground()
         {
-            Background.Img = new Bitmap("background.png");
+            Background.Img = new Bitmap("map.png");
             Background.X = 0;
             Background.Y = 0;
         }
