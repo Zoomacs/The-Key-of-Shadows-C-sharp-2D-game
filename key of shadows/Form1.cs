@@ -362,11 +362,16 @@ namespace key_of_shadows
                     ball ptrv = fireball[i];
                     ptrv.x += 10;
                     ptrv.cf++;
-                    if(ptrv.cf >= ptrv.charge.Count)
+                    if ((ptrv.x + ptrv.charge[ptrv.cf].Width) > fa7l.x -30 && fa7l.x > ptrv.x)
+                    {
+                        ptrv.cf = 6;
+                    }
+                    else if(ptrv.cf >= ptrv.charge.Count-7)
                     {
                         ptrv.cf = 0;
                     }
-                    if (ptrv.w == 20)
+
+                    if (ptrv.w == 20 || ptrv.cf == ptrv.charge.Count)
                     {
                         fireball.RemoveAt(i);
                         i--;
@@ -394,6 +399,19 @@ namespace key_of_shadows
                 fa7l.gothit = true;
                 deadcheck(fa7l);
             }
+            if (fireball.Count > 0)
+            {
+                for (int i = 0; i < fireball.Count; i++)
+                {
+                    if ((fireball[i].x + fireball[i].charge[fireball[i].cf].Width) > fa7l.x && fa7l.x > fireball[i].x)
+                    {
+                        fa7l.health -= 5;
+                        fa7l.gothit = true;
+                        deadcheck(fa7l);
+                    }
+                }
+            }
+            
         }
         void deadcheck(actor enemy)
         {
@@ -406,10 +424,6 @@ namespace key_of_shadows
                 enemy.state = 4;
                 enemy.cf = 0;
             }
-        }
-        void movefireball()
-        {
-
         }
     }
 }
