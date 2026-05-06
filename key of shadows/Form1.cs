@@ -10,6 +10,13 @@ using System.Windows.Forms;
 
 namespace key_of_shadows
 {
+    class ball
+    {
+        public int x, y;
+        public int w = 0, d;
+        public int cf;
+        public List<Bitmap> charge = new List<Bitmap>();
+    }
     class actor
     {
         public int x, y;
@@ -32,6 +39,7 @@ namespace key_of_shadows
     public partial class Form1 : Form
     {
         int count = 0;
+        bool laseron = false;
         bool isattack = false;
         Bitmap off;
         Timer tt = new Timer();
@@ -41,13 +49,14 @@ namespace key_of_shadows
         actor skespe = new actor();
         actor skewar = new actor();
         actor demon = new actor();
-        List<actor> l = new List<actor>();
+        List<ball> fireball = new List<ball>();
         public Form1()
         {
             WindowState = FormWindowState.Maximized;
             KeyDown += Form1_KeyDown;
             KeyUp += Form1_KeyUp;
             MouseDown += Form1_MouseDown;
+            MouseUp += Form1_MouseUp;
             Paint += Form1_Paint;
             Load += Form1_Load1;
             BackColor = Color.LightBlue;
@@ -60,12 +69,9 @@ namespace key_of_shadows
         private void Tt_Tick(object sender, EventArgs e)
         {
             count++;
-            idle(hero);
-            idle(fa7l);
-            walking();
-            attack();
-            dead();
-            hurt();
+            manageanimation(hero);
+            managechargeanimation();
+            manageanimation(fa7l);
             drawdubb(this.CreateGraphics());
             enemyhitcheck();
         }
@@ -84,7 +90,6 @@ namespace key_of_shadows
                 if (i <= 9) { hero.jump.Add(new Bitmap("hero\\jump\\herojump" + i + ".png")); }
                 if (i <= 6) { hero.dead.Add(new Bitmap("hero\\dead\\herodead" + i + ".png")); }
                 if (i <= 3) { hero.hurt.Add(new Bitmap("hero\\hurt\\herohurt" + i + ".png")); }
-                if (i <= 12) { hero.charge.Add(new Bitmap("hero\\charge\\herocharge" + i + ".png")); }
             }
             hero.x = 750;
             hero.y = 723 - hero.walk[0].Height;
@@ -177,13 +182,33 @@ namespace key_of_shadows
                     hero.cf = 0;
                 }
             }
+            if (e.KeyCode == Keys.E)
+            {
+                isattack = true;
+                hero.state = 6;
+            }
+
+        }
+        private void Form1_MouseUp(object sender, MouseEventArgs e)
+        {
+           if (e.Button == MouseButtons.Right)
+            {
+                laseron = false;
+            }
         }
         private void Form1_MouseDown(object sender, MouseEventArgs e)
         {
-            if(e.Button == MouseButtons.Left)
+            if (e.Button == MouseButtons.Left)
             {
                 isattack = true;
                 hero.state = 5;
+                hero.cf = 0;
+            }
+            if (e.Button == MouseButtons.Right)
+            {
+                isattack = true;
+                laseron = true;
+                hero.state = 7;
                 hero.cf = 0;
             }
         }
@@ -208,7 +233,13 @@ namespace key_of_shadows
             g2.Clear(BackColor);
             SolidBrush br = new SolidBrush(Color.Black);
             g2.FillRectangle(br, 0, 750, ClientSize.Width, 800);
-
+            if (fireball.Count > 0)
+            {
+                for(int i = 0; i < fireball.Count; i++)
+                {
+                    g2.DrawImage(fireball[i].charge[fireball[i].cf], fireball[i].x, fireball[i].y);
+                }
+            }
             if (hero.idle.Count > 0)
             {
                 int frameToDraw = hero.cf;
@@ -225,15 +256,24 @@ namespace key_of_shadows
                 {
                     g2.DrawImage(hero.attack1[frameToDraw], hero.x, hero.y);
                 }
+                else if (hero.state == 6)
+                {
+                    g2.DrawImage(hero.attack2[frameToDraw], hero.x, hero.y);
+                }
+                else if (hero.state == 7)
+                {
+                    g2.DrawImage(hero.attack3[frameToDraw], hero.x, hero.y);
+                }
                 if (fa7l.state == 0) { g2.DrawImage(fa7l.idle[fa7l.cf], fa7l.x, fa7l.y); }
-                else if (fa7l.state == 5) { g2.DrawImage(fa7l.attack1[fa7l.cf], fa7l.x, fa7l.y); }
+                else if (fa7l.state == 1) { g2.DrawImage(fa7l.walk[fa7l.cf], fa7l.x, fa7l.y); }
                 else if (fa7l.state == 3) { g2.DrawImage(fa7l.hurt[fa7l.cf], fa7l.x, fa7l.y); }
                 else if (fa7l.state == 4) { g2.DrawImage(fa7l.dead[fa7l.cf], fa7l.x, fa7l.y); }
-                else if (fa7l.state == 1) { g2.DrawImage(fa7l.walk[fa7l.cf], fa7l.x, fa7l.y); }
+                else if (fa7l.state == 5) { g2.DrawImage(fa7l.attack1[fa7l.cf], fa7l.x, fa7l.y); }
                 else { g2.DrawImage(fa7l.idle[0], fa7l.x, fa7l.y); }
             }
         }
-        void idle(actor actor)
+        
+        void manageanimation(actor actor)
         {
             if (actor.state == 0)
             {
@@ -243,57 +283,102 @@ namespace key_of_shadows
                     actor.cf = 0;
                 }
             }
-        }
-        void attack()
-        {
-            if (fa7l.state == 5)
+            else if (actor.state == 1)
             {
-                fa7l.cf++;
-                if (fa7l.cf >= 5)
+                actor.cf++;
+                if (actor.cf >= actor.walk.Count)
                 {
-                    fa7l.cf = 0;
-                    fa7l.state = 0;
+                    actor.cf--;
                 }
             }
-            if (hero.state == 5)
+            else if (actor.state == 3)
             {
-                hero.cf++;
-                if (hero.cf >= 4)
+                actor.cf++;
+                if (actor.cf >= actor.hurt.Count)
                 {
-                    hero.cf = 0;
-                    hero.state = 0;
-                    isattack = false;
+                    actor.cf = 0;
+                    actor.state = 0;
                 }
             }
-        }
-        void walking()
-        {
-            if (fa7l.state == 1)
+            else if (actor.state == 4)
             {
-                fa7l.cf++;
-                if (fa7l.cf >= 12)
+                actor.cf++;
+                if (actor.cf >= actor.dead.Count)
                 {
-                    fa7l.cf--;
-                    
+                    actor.cf = actor.dead.Count - 1;
                 }
             }
-        }
-        void hurt()
-        {
-            if (fa7l.state == 3)
+            else if (actor.state == 5)
             {
-                fa7l.cf++;
-                if (fa7l.cf >= 3)
+                actor.cf++;
+                if (actor.cf >= actor.attack1.Count)
                 {
-                    fa7l.cf = 0;
-                    fa7l.state = 0;
+                    actor.cf = 0;
+                    actor.state = 0;
                     fa7l.gothit = false;
                 }
             }
+            else if (actor.state == 6)
+            {
+                actor.cf++;
+                if (actor.cf >= actor.attack2.Count)
+                {
+                    ball pnn = new ball();
+                    pnn.x = hero.x + hero.attack2[hero.attack2.Count-1].Width;
+                    pnn.y = hero.y ;
+                    for(int i = 1; i <= 12 ; i++)
+                    {
+                        pnn.charge.Add(new Bitmap("hero\\charge\\herocharge" + i + ".png"));
+                    }
+                    fireball.Add(pnn);
+                    actor.cf = 0;
+                    actor.state = 0;
+                }
+            }
+            else if (actor.state == 7)
+            {
+                actor.cf++;
+                if (actor.cf >= actor.attack3.Count-3)
+                {
+                    if (laseron)
+                    {
+                        actor.cf = 6;
+                    }
+                    else
+                    {
+                        actor.cf = 0;
+                        actor.state = 0;
+                    }
+
+                }
+            }
         }
+        void managechargeanimation()
+        {
+            if(fireball.Count > 0)
+            {
+                for(int i = 0; i < fireball.Count; i++)
+                {
+                    ball ptrv = fireball[i];
+                    ptrv.x += 10;
+                    ptrv.cf++;
+                    if(ptrv.cf >= ptrv.charge.Count)
+                    {
+                        ptrv.cf = 0;
+                    }
+                    if (ptrv.w == 20)
+                    {
+                        fireball.RemoveAt(i);
+                        i--;
+                    }
+                    ptrv.w++;
+                }
+            }
+        }
+        
         void enemyhitcheck()
         {
-            if (hero.state == 5 && hero.x + hero.attack1[hero.cf].Width > fa7l.x && fa7l.x > hero.x && isattack)
+            if (hero.state == 5 && (hero.x + hero.attack1[hero.cf].Width >= fa7l.x) && fa7l.x > hero.x && isattack)
             {
                 if (!fa7l.gothit)
                 {
@@ -301,6 +386,13 @@ namespace key_of_shadows
                     fa7l.gothit = true;
                     deadcheck(fa7l);
                 }
+            }
+            else if(hero.state == 7 && (hero.x + hero.attack3[hero.cf].Width >= fa7l.x-30) && fa7l.x > hero.x && isattack)
+            {
+
+                fa7l.health -= 1;
+                fa7l.gothit = true;
+                deadcheck(fa7l);
             }
         }
         void deadcheck(actor enemy)
@@ -313,19 +405,11 @@ namespace key_of_shadows
             {
                 enemy.state = 4;
                 enemy.cf = 0;
-                fa7l.isdead = true;
             }
         }
-        void dead()
+        void movefireball()
         {
-            if (fa7l.state == 4  && fa7l.isdead)
-            {
-                fa7l.cf++;
-                if (fa7l.cf >= fa7l.dead.Count)
-                {
-                    fa7l.cf = fa7l.dead.Count - 1;
-                }
-            }
+
         }
     }
 }

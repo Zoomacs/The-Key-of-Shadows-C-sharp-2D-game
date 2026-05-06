@@ -22,9 +22,9 @@ C:\Users\Lenovo\Desktop\CS232-Project\key of shadows\bin\Debug\key of shadows.ex
 C:\Users\Lenovo\Desktop\CS232-Project\key of shadows\bin\Debug\key of shadows.exe
 C:\Users\Lenovo\Desktop\CS232-Project\key of shadows\bin\Debug\key of shadows.pdb
 C:\Users\Lenovo\Desktop\CS232-Project\key of shadows\obj\Debug\key of shadows.csproj.AssemblyReference.cache
-C:\Users\Lenovo\Desktop\CS232-Project\key of shadows\obj\Debug\key_of_shadows.actor.resources
 C:\Users\Lenovo\Desktop\CS232-Project\key of shadows\obj\Debug\key_of_shadows.Properties.Resources.resources
 C:\Users\Lenovo\Desktop\CS232-Project\key of shadows\obj\Debug\key of shadows.csproj.GenerateResource.cache
 C:\Users\Lenovo\Desktop\CS232-Project\key of shadows\obj\Debug\key of shadows.csproj.CoreCompileInputs.cache
 C:\Users\Lenovo\Desktop\CS232-Project\key of shadows\obj\Debug\key of shadows.exe
 C:\Users\Lenovo\Desktop\CS232-Project\key of shadows\obj\Debug\key of shadows.pdb
+C:\Users\Lenovo\Desktop\CS232-Project\key of shadows\obj\Debug\key_of_shadows.ball.resources
