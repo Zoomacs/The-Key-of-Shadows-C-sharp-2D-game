@@ -12,44 +12,47 @@ namespace key_of_shadows
 {
     class ball
     {
-        public int x, y;
-        public int w = 0, d;
-        public int cf;
-        public List<Bitmap> charge = new List<Bitmap>();
+        public int X, Y;
+        public int W, D;
+        public int IF;
+        public List<Bitmap> Charge = new List<Bitmap>();
     }
-    class actor
+    class CActor
     {
-        public int x, y;
-        public int w, d;
-        public int state;
-        public int cf;
-        public int health;
-        public bool gothit = false;
-        public bool isdead = false;
-        public List<Bitmap> idle = new List<Bitmap>();
-        public List<Bitmap> walk = new List<Bitmap>();
-        public List<Bitmap> jump = new List<Bitmap>();
-        public List<Bitmap> attack1 = new List<Bitmap>();
-        public List<Bitmap> attack2 = new List<Bitmap>();
-        public List<Bitmap> attack3 = new List<Bitmap>();
-        public List<Bitmap> hurt = new List<Bitmap>();
-        public List<Bitmap> dead = new List<Bitmap>();
-        public List<Bitmap> charge = new List<Bitmap>();
+        public int X, Y;
+        public int W, D;
+        public int State;
+        public int IF;
+        public int Health;
+        public bool GotHit = false;
+        public bool isDead = false;
+        public Bitmap Img;
+        public List<Bitmap> Idle = new List<Bitmap>();
+        public List<Bitmap> Walk = new List<Bitmap>();
+        public List<Bitmap> Jump = new List<Bitmap>();
+        public List<Bitmap> Attack1 = new List<Bitmap>();
+        public List<Bitmap> Attack2 = new List<Bitmap>();
+        public List<Bitmap> Attack3 = new List<Bitmap>();
+        public List<Bitmap> Hurt = new List<Bitmap>();
+        public List<Bitmap> Dead = new List<Bitmap>();
+        public List<Bitmap> Charge = new List<Bitmap>();
     }
     public partial class Form1 : Form
     {
         int count = 0;
-        bool laseron = false;
-        bool isattack = false;
+        bool LaserOn = false;
+        bool isAttack = false;
         Bitmap off;
         Timer tt = new Timer();
-        actor hero = new actor();
-        actor fa7l = new actor();
-        actor skearch = new actor();
-        actor skespe = new actor();
-        actor skewar = new actor();
-        actor demon = new actor();
-        List<ball> fireball = new List<ball>();
+        CActor Hero = new CActor();
+        CActor Fa7l = new CActor();
+        CActor Skearch = new CActor();
+        CActor Skespe = new CActor();
+        CActor Skewar = new CActor();
+        CActor Demon = new CActor();
+        List<ball> Fireball = new List<ball>();
+        CActor Background = new CActor();
+        int BStartX, BStartY;
         public Form1()
         {
             WindowState = FormWindowState.Maximized;
@@ -58,8 +61,8 @@ namespace key_of_shadows
             MouseDown += Form1_MouseDown;
             MouseUp += Form1_MouseUp;
             Paint += Form1_Paint;
-            Load += Form1_Load1;
-            BackColor = Color.LightBlue;
+            Load += Form1_Load;
+            BackColor = Color.Orange;
             tt.Tick += Tt_Tick; ;
             tt.Interval = 100;
             tt.Start();
@@ -69,360 +72,467 @@ namespace key_of_shadows
         private void Tt_Tick(object sender, EventArgs e)
         {
             count++;
-            manageanimation(hero);
-            managechargeanimation();
-            manageanimation(fa7l);
-            drawdubb(this.CreateGraphics());
-            enemyhitcheck();
+            Jump();
+            ManageChargeAnimation(Hero);
+            ManageChargeAnimation();
+            ManageChargeAnimation(Fa7l);
+            DrawDubb(this.CreateGraphics());
+            CheckEnemyHit();
         }
 
-        private void Form1_Load1(object sender, EventArgs e)
+        private void Form1_Load(object sender, EventArgs e)
         {
             off = new Bitmap(this.ClientSize.Width, this.ClientSize.Height);
-
+            DrawBackground();
             for (int i = 1; i <= 14; i++)
             {
-                if (i <= 7) { hero.idle.Add(new Bitmap("hero\\idle\\heroidle" + i + ".png")); }
-                if (i <= 8) { hero.walk.Add(new Bitmap("hero\\walk\\herorun" + i + ".png")); }
-                if (i <= 4) { hero.attack1.Add(new Bitmap("hero\\attack1\\heromeleeattack" + i + ".png")); }
-                if (i <= 8) { hero.attack2.Add(new Bitmap("hero\\attack2\\heroattackfireball" + i + ".png")); }
-                { hero.attack3.Add(new Bitmap("hero\\attack3\\heroflameattack" + i + ".png")); }
-                if (i <= 9) { hero.jump.Add(new Bitmap("hero\\jump\\herojump" + i + ".png")); }
-                if (i <= 6) { hero.dead.Add(new Bitmap("hero\\dead\\herodead" + i + ".png")); }
-                if (i <= 3) { hero.hurt.Add(new Bitmap("hero\\hurt\\herohurt" + i + ".png")); }
+                if (i <= 7) { Hero.Idle.Add(new Bitmap("hero\\idle\\heroidle" + i + ".png")); }
+                if (i <= 8) { Hero.Walk.Add(new Bitmap("hero\\walk\\herorun" + i + ".png")); }
+                if (i <= 4) { Hero.Attack1.Add(new Bitmap("hero\\attack1\\heromeleeattack" + i + ".png")); }
+                if (i <= 8) { Hero.Attack2.Add(new Bitmap("hero\\attack2\\heroattackFireball" + i + ".png")); }
+                { Hero.Attack3.Add(new Bitmap("hero\\attack3\\heroflameattack" + i + ".png")); }
+                if (i <= 9) { Hero.Jump.Add(new Bitmap("hero\\jump\\herojump" + i + ".png")); }
+                if (i <= 6) { Hero.Dead.Add(new Bitmap("hero\\dead\\herodead" + i + ".png")); }
+                if (i <= 3) { Hero.Hurt.Add(new Bitmap("hero\\hurt\\herohurt" + i + ".png")); }
             }
-            hero.x = 750;
-            hero.y = 723 - hero.walk[0].Height;
-            hero.state = 0;
+            Hero.X = ClientSize.Width / 2 - Hero.Idle[0].Width / 2;
+            Hero.Y = 723 - Hero.Walk[0].Height;
+            Hero.State = 0;
 
             for (int i = 1; i <= 12; i++)
             {
-                if (i <= 5) { fa7l.attack1.Add(new Bitmap("fa7l\\attack\\attackfa7l" + i + ".png")); }
-                if (i <= 5) { fa7l.dead.Add(new Bitmap("fa7l\\dead\\deadfa7l" + i + ".png")); }
-                if (i <= 3) { fa7l.hurt.Add(new Bitmap("fa7l\\hurt\\hurtfa7l" + i + ".png")); }
-                if (i <= 10) { fa7l.idle.Add(new Bitmap("fa7l\\idle\\idlefa7l" + i + ".png")); }
-                fa7l.walk.Add(new Bitmap("fa7l\\walk\\walkfa7l" + i + ".png"));
+                if (i <= 5) { Fa7l.Attack1.Add(new Bitmap("fa7l\\attack\\attackfa7l" + i + ".png")); }
+                if (i <= 5) { Fa7l.Dead.Add(new Bitmap("fa7l\\dead\\deadfa7l" + i + ".png")); }
+                if (i <= 3) { Fa7l.Hurt.Add(new Bitmap("fa7l\\hurt\\hurtfa7l" + i + ".png")); }
+                if (i <= 10) { Fa7l.Idle.Add(new Bitmap("fa7l\\idle\\idlefa7l" + i + ".png")); }
+                Fa7l.Walk.Add(new Bitmap("fa7l\\walk\\walkfa7l" + i + ".png"));
             }
-            fa7l.x = 1150;
-            fa7l.y = 723 - fa7l.walk[0].Height;
-            fa7l.state = 0;
-            fa7l.health = 11;
+            Fa7l.X = 1150;
+            Fa7l.Y = 723 - Fa7l.Walk[0].Height;
+            Fa7l.State = 0;
+            Fa7l.Health = 11;
 
             for (int i = 1; i <= 15; i++)
             {
-                skearch.attack1.Add(new Bitmap("skearch\\attack\\skearchattack" + i + ".png"));
-                if (i <= 5) { skearch.dead.Add(new Bitmap("skearch\\dead\\skearchdead" + i + ".png")); }
-                if (i <= 2) { skearch.hurt.Add(new Bitmap("skearch\\hurt\\skearchhurt" + i + ".png")); }
-                if (i <= 7) { skearch.idle.Add(new Bitmap("skearch\\idle\\skearchidle" + i + ".png")); }
-                if (i <= 8) { skearch.walk.Add(new Bitmap("skearch\\walk\\skearchwalk" + i + ".png")); }
+                Skearch.Attack1.Add(new Bitmap("skearch\\attack\\skearchattack" + i + ".png"));
+                if (i <= 5) { Skearch.Dead.Add(new Bitmap("skearch\\dead\\skearchdead" + i + ".png")); }
+                if (i <= 2) { Skearch.Hurt.Add(new Bitmap("skearch\\hurt\\skearchhurt" + i + ".png")); }
+                if (i <= 7) { Skearch.Idle.Add(new Bitmap("skearch\\idle\\skearchidle" + i + ".png")); }
+                if (i <= 8) { Skearch.Walk.Add(new Bitmap("skearch\\walk\\skearchwalk" + i + ".png")); }
             }
 
             for (int i = 1; i <= 7; i++)
             {
-                skespe.idle.Add(new Bitmap("skespe\\idle\\skespeidle" + i + ".png"));
-                skespe.walk.Add(new Bitmap("skespe\\walk\\skespewalk" + i + ".png"));
-                if (i <= 6) { skespe.walk.Add(new Bitmap("skespe\\run\\skesperun" + i + ".png")); }
+                Skespe.Idle.Add(new Bitmap("skespe\\idle\\skespeidle" + i + ".png"));
+                Skespe.Walk.Add(new Bitmap("skespe\\walk\\skespewalk" + i + ".png"));
+                if (i <= 6) { Skespe.Walk.Add(new Bitmap("skespe\\run\\skesperun" + i + ".png")); }
                 if (i <= 5)
                 {
-                    skespe.dead.Add(new Bitmap("skespe\\dead\\skespedead" + i + ".png"));
-                    skespe.attack2.Add(new Bitmap("skespe\\attack+run\\skesperunattack" + i + ".png"));
+                    Skespe.Dead.Add(new Bitmap("skespe\\dead\\skespedead" + i + ".png"));
+                    Skespe.Attack2.Add(new Bitmap("skespe\\attack+run\\skesperunattack" + i + ".png"));
                 }
                 if (i <= 4)
                 {
-                    skespe.attack1.Add(new Bitmap("skespe\\attack\\skespeattack" + i + ".png"));
-                    skespe.charge.Add(new Bitmap("skespe\\Arrow.png"));
+                    Skespe.Attack1.Add(new Bitmap("skespe\\attack\\skespeattack" + i + ".png"));
+                    Skespe.Charge.Add(new Bitmap("skespe\\Arrow.png"));
                 }
-                if (i <= 3) { skespe.hurt.Add(new Bitmap("skespe\\hurt\\skespehurt" + i + ".png")); }
+                if (i <= 3) { Skespe.Hurt.Add(new Bitmap("skespe\\hurt\\skespehurt" + i + ".png")); }
             }
 
             for (int i = 1; i <= 7; i++)
             {
-                skewar.idle.Add(new Bitmap("skewar\\idle\\skewaridle" + i + ".png"));
-                skewar.walk.Add(new Bitmap("skewar\\walk\\skewarwalk" + i + ".png"));
-                if (i <= 5) { skewar.attack1.Add(new Bitmap("skewar\\attack\\skewarattack" + i + ".png")); }
-                if (i <= 4) { skewar.dead.Add(new Bitmap("skewar\\dead\\skewardead" + i + ".png")); }
-                if (i <= 2) { skewar.hurt.Add(new Bitmap("skewar\\hurt\\skewarhurt" + i + ".png")); }
+                Skewar.Idle.Add(new Bitmap("skewar\\idle\\skewaridle" + i + ".png"));
+                Skewar.Walk.Add(new Bitmap("skewar\\walk\\skewarwalk" + i + ".png"));
+                if (i <= 5) { Skewar.Attack1.Add(new Bitmap("skewar\\attack\\skewarattack" + i + ".png")); }
+                if (i <= 4) { Skewar.Dead.Add(new Bitmap("skewar\\dead\\skewardead" + i + ".png")); }
+                if (i <= 2) { Skewar.Hurt.Add(new Bitmap("skewar\\hurt\\skewarhurt" + i + ".png")); }
             }
 
             for (int i = 1; i <= 8; i++)
             {
-                if (i <= 8) { demon.attack1.Add(new Bitmap("demon\\attack\\demonattack" + i + ".png")); }
-                if (i <= 6) { demon.dead.Add(new Bitmap("demon\\dead\\demondead" + i + ".png")); }
-                if (i <= 4) { demon.walk.Add(new Bitmap("demon\\fly\\demonfly" + i + ".png")); }
-                if (i <= 4) { demon.hurt.Add(new Bitmap("demon\\hurt\\demonhurt" + i + ".png")); }
-                if (i <= 4) { demon.idle.Add(new Bitmap("demon\\idle\\demonideal" + i + ".png")); }
+                if (i <= 8) { Demon.Attack1.Add(new Bitmap("demon\\attack\\demonattack" + i + ".png")); }
+                if (i <= 6) { Demon.Dead.Add(new Bitmap("demon\\dead\\demondead" + i + ".png")); }
+                if (i <= 4) { Demon.Walk.Add(new Bitmap("demon\\fly\\demonfly" + i + ".png")); }
+                if (i <= 4) { Demon.Hurt.Add(new Bitmap("demon\\hurt\\demonhurt" + i + ".png")); }
+                if (i <= 4) { Demon.Idle.Add(new Bitmap("demon\\idle\\demonideal" + i + ".png")); }
             }
 
         }
-        private void Form1_KeyUp(object sender, KeyEventArgs e)
+        void DrawBackground()
         {
-            if (hero.state == 1)
-            {
-                hero.state = 0;
-                hero.cf = 0;
-            }
-
-        }
-
-        private void Form1_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.A || e.KeyCode == Keys.D)
-            {    
-                if (hero.state != 1)
-                {
-                    hero.cf = 0;
-                    hero.state = 1;
-                }
-
-                if (e.KeyCode == Keys.A) hero.x -= 10;
-                if (e.KeyCode == Keys.D) hero.x += 10;
-                hero.cf++;
-                if (hero.cf >= 8)
-                {
-                    hero.cf = 0;
-                }
-            }
-            if (e.KeyCode == Keys.E)
-            {
-                isattack = true;
-                hero.state = 6;
-            }
-
-        }
-        private void Form1_MouseUp(object sender, MouseEventArgs e)
-        {
-           if (e.Button == MouseButtons.Right)
-            {
-                laseron = false;
-            }
-        }
-        private void Form1_MouseDown(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Left)
-            {
-                isattack = true;
-                hero.state = 5;
-                hero.cf = 0;
-            }
-            if (e.Button == MouseButtons.Right)
-            {
-                isattack = true;
-                laseron = true;
-                hero.state = 7;
-                hero.cf = 0;
-            }
+            Background.Img = new Bitmap("background.png");
+            Background.X = 0;
+            Background.Y = 0;
         }
 
         private void Form1_Paint(object sender, PaintEventArgs e)
         {
-            drawdubb(e.Graphics);
+            DrawDubb(e.Graphics);
         }
-        private void Form1_Load(object sender, EventArgs e)
-        {
 
-        }
-        void drawdubb(Graphics g)
+        void DrawDubb(Graphics g)
         {
             Graphics g2 = Graphics.FromImage(off);
-            drawscene(g2);
+            DrawScene(g2);
             g.DrawImage(off, 0, 0);
         }
 
-        void drawscene(Graphics g2)
+        void DrawScene(Graphics g2)
         {
             g2.Clear(BackColor);
             SolidBrush br = new SolidBrush(Color.Black);
+
+            Rectangle rcDst = new Rectangle(0, 0, ClientSize.Width, ClientSize.Height);
+            Rectangle rcSrc = new Rectangle(BStartX, Background.Y + Background.Img.Height / 10000, ClientSize.Width, Background.Img.Height);
+            g2.DrawImage(Background.Img, rcDst, rcSrc, GraphicsUnit.Pixel);
+
             g2.FillRectangle(br, 0, 750, ClientSize.Width, 800);
-            if (fireball.Count > 0)
+            if (Fireball.Count > 0)
             {
-                for(int i = 0; i < fireball.Count; i++)
+                for (int i = 0; i < Fireball.Count; i++)
                 {
-                    g2.DrawImage(fireball[i].charge[fireball[i].cf], fireball[i].x, fireball[i].y);
+                    g2.DrawImage(Fireball[i].Charge[Fireball[i].IF], Fireball[i].X, Fireball[i].Y);
                 }
             }
-            if (hero.idle.Count > 0)
+            if (Hero.Idle.Count > 0)
             {
-                int frameToDraw = hero.cf;
+                int frameToDraw = Hero.IF;
 
-                if (hero.state == 0 && hero.idle.Count > frameToDraw)
+                if (Hero.State == 0 && Hero.Idle.Count > frameToDraw)
                 {
-                    g2.DrawImage(hero.idle[frameToDraw], hero.x, hero.y);
+                    g2.DrawImage(Hero.Idle[frameToDraw], Hero.X, Hero.Y);
                 }
-                else if (hero.state == 1)
+                else if (Hero.State == 1)
                 {
-                    g2.DrawImage(hero.walk[frameToDraw], hero.x, hero.y);
+                    g2.DrawImage(Hero.Walk[frameToDraw], Hero.X, Hero.Y);
                 }
-                else if (hero.state == 5)
+                else if (Hero.State == 2 || Hero.State == 3 || Hero.State == 4)
                 {
-                    g2.DrawImage(hero.attack1[frameToDraw], hero.x, hero.y);
+                    g2.DrawImage(Hero.Jump[frameToDraw], Hero.X, Hero.Y);
                 }
-                else if (hero.state == 6)
+                else if (Hero.State == 5)
                 {
-                    g2.DrawImage(hero.attack2[frameToDraw], hero.x, hero.y);
+                    g2.DrawImage(Hero.Attack1[frameToDraw], Hero.X, Hero.Y);
                 }
-                else if (hero.state == 7)
+                else if (Hero.State == 6)
                 {
-                    g2.DrawImage(hero.attack3[frameToDraw], hero.x, hero.y);
+                    g2.DrawImage(Hero.Attack2[frameToDraw], Hero.X, Hero.Y);
                 }
-                if (fa7l.state == 0) { g2.DrawImage(fa7l.idle[fa7l.cf], fa7l.x, fa7l.y); }
-                else if (fa7l.state == 1) { g2.DrawImage(fa7l.walk[fa7l.cf], fa7l.x, fa7l.y); }
-                else if (fa7l.state == 3) { g2.DrawImage(fa7l.hurt[fa7l.cf], fa7l.x, fa7l.y); }
-                else if (fa7l.state == 4) { g2.DrawImage(fa7l.dead[fa7l.cf], fa7l.x, fa7l.y); }
-                else if (fa7l.state == 5) { g2.DrawImage(fa7l.attack1[fa7l.cf], fa7l.x, fa7l.y); }
-                else { g2.DrawImage(fa7l.idle[0], fa7l.x, fa7l.y); }
+                else if (Hero.State == 7)
+                {
+                    g2.DrawImage(Hero.Attack3[frameToDraw], Hero.X, Hero.Y);
+                }
+                if (Fa7l.State == 0) { g2.DrawImage(Fa7l.Idle[Fa7l.IF], Fa7l.X - BStartX, Fa7l.Y); }
+                else if (Fa7l.State == 1) { g2.DrawImage(Fa7l.Walk[Fa7l.IF], Fa7l.X - BStartX, Fa7l.Y); }
+                else if (Fa7l.State == 3) { g2.DrawImage(Fa7l.Hurt[Fa7l.IF], Fa7l.X - BStartX, Fa7l.Y); }
+                else if (Fa7l.State == 4) { g2.DrawImage(Fa7l.Dead[Fa7l.IF], Fa7l.X - BStartX, Fa7l.Y); }
+                else if (Fa7l.State == 5) { g2.DrawImage(Fa7l.Attack1[Fa7l.IF], Fa7l.X - BStartX, Fa7l.Y); }
+                else { g2.DrawImage(Fa7l.Idle[0], Fa7l.X, Fa7l.Y); }
             }
         }
-        
-        void manageanimation(actor actor)
+
+        private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
-            if (actor.state == 0)
+            if (Hero.State == 0 || Hero.State == 1)
             {
-                actor.cf++;
-                if (actor.cf >= actor.idle.Count)
+                if (e.KeyCode == Keys.A || e.KeyCode == Keys.D)
                 {
-                    actor.cf = 0;
+                    if (Hero.State != 1)
+                    {
+                        Hero.IF = 0;
+                        Hero.State = 1;
+                    }
+
+                    if (e.KeyCode == Keys.A)
+                    {
+                        if (BStartX > 25)
+                        {
+                            BStartX -= 25;
+                        }
+                        else
+                        {
+                            Hero.X -= 10;
+                        }
+                    }
+                    if (e.KeyCode == Keys.D)
+                    {
+                        if (Hero.X < ClientSize.Width / 2 - Hero.Idle[0].Width / 2)
+                        {
+                            Hero.X += 10;
+                        }
+                        else
+                        {
+                            BStartX += 25;
+                        }
+                    }
+                    Hero.IF++;
+                    if (Hero.IF >= 8)
+                    {
+                        Hero.IF = 0;
+                    }
+                }
+
+                if (e.KeyCode == Keys.W)
+                {
+                    if (Hero.State != 2)
+                    {
+                        Hero.IF = 0;
+                        Hero.State = 2;
+                    }
+
+                }
+                else if (e.KeyCode == Keys.E)
+                {
+                    if (Hero.State != 3)
+                    {
+                        Hero.IF = 0;
+                        Hero.State = 3;
+                    }
+
+                }
+                else if (e.KeyCode == Keys.Q)
+                {
+                    if (Hero.State != 4)
+                    {
+                        Hero.IF = 0;
+                        Hero.State = 4;
+                    }
+
+                }
+                if (e.KeyCode == Keys.R)
+                {
+                    isAttack = true;
+                    Hero.State = 6;
                 }
             }
-            else if (actor.state == 1)
+        }
+        private void Form1_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (Hero.State == 1)
             {
-                actor.cf++;
-                if (actor.cf >= actor.walk.Count)
+                Hero.State = 0;
+                Hero.IF = 0;
+            }
+
+        }
+
+        private void Form1_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                isAttack = true;
+                Hero.State = 5;
+                Hero.IF = 0;
+            }
+            if (e.Button == MouseButtons.Right)
+            {
+                isAttack = true;
+                LaserOn = true;
+                Hero.State = 7;
+                Hero.IF = 0;
+            }
+        }
+
+        private void Form1_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                LaserOn = false;
+            }
+        }
+
+        void ManageChargeAnimation(CActor Actor)
+        {
+            if (Actor.State == 0)
+            {
+                Actor.IF++;
+                if (Actor.IF >= Actor.Idle.Count)
                 {
-                    actor.cf--;
+                    Actor.IF = 0;
                 }
             }
-            else if (actor.state == 3)
+            else if (Actor.State == 1)
             {
-                actor.cf++;
-                if (actor.cf >= actor.hurt.Count)
+                Actor.IF++;
+                if (Actor.IF >= Actor.Walk.Count)
                 {
-                    actor.cf = 0;
-                    actor.state = 0;
+                    Actor.IF--;
                 }
             }
-            else if (actor.state == 4)
+            //else if (Actor.State == 3)
+            //{
+            //    Actor.IF++;
+            //    if (Actor.IF >= Actor.Hurt.Count)
+            //    {
+            //        Actor.IF = 0;
+            //        Actor.State = 0;
+            //    }
+            //}
+            //else if (Actor.State == 4)
+            //{
+            //    Actor.IF++;
+            //    if (Actor.IF >= Actor.Dead.Count)
+            //    {
+            //        Actor.IF = Actor.Dead.Count - 1;
+            //    }
+            //}
+            else if (Actor.State == 5)
             {
-                actor.cf++;
-                if (actor.cf >= actor.dead.Count)
+                Actor.IF++;
+                if (Actor.IF >= Actor.Attack1.Count)
                 {
-                    actor.cf = actor.dead.Count - 1;
+                    Actor.IF = 0;
+                    Actor.State = 0;
+                    Fa7l.GotHit = false;
                 }
             }
-            else if (actor.state == 5)
+            else if (Actor.State == 6)
             {
-                actor.cf++;
-                if (actor.cf >= actor.attack1.Count)
-                {
-                    actor.cf = 0;
-                    actor.state = 0;
-                    fa7l.gothit = false;
-                }
-            }
-            else if (actor.state == 6)
-            {
-                actor.cf++;
-                if (actor.cf >= actor.attack2.Count)
+                Actor.IF++;
+                if (Actor.IF >= Actor.Attack2.Count)
                 {
                     ball pnn = new ball();
-                    pnn.x = hero.x + hero.attack2[hero.attack2.Count-1].Width;
-                    pnn.y = hero.y ;
-                    for(int i = 1; i <= 12 ; i++)
+                    pnn.X = Hero.X + Hero.Attack2[Hero.Attack2.Count - 1].Width;
+                    pnn.Y = Hero.Y;
+                    for (int i = 1; i <= 12; i++)
                     {
-                        pnn.charge.Add(new Bitmap("hero\\charge\\herocharge" + i + ".png"));
+                        pnn.Charge.Add(new Bitmap("hero\\charge\\herocharge" + i + ".png"));
                     }
-                    fireball.Add(pnn);
-                    actor.cf = 0;
-                    actor.state = 0;
+                    Fireball.Add(pnn);
+                    Actor.IF = 0;
+                    Actor.State = 0;
                 }
             }
-            else if (actor.state == 7)
+            else if (Actor.State == 7)
             {
-                actor.cf++;
-                if (actor.cf >= actor.attack3.Count-3)
+                Actor.IF++;
+                if (Actor.IF >= Actor.Attack3.Count - 3)
                 {
-                    if (laseron)
+                    if (LaserOn)
                     {
-                        actor.cf = 6;
+                        Actor.IF = 6;
                     }
                     else
                     {
-                        actor.cf = 0;
-                        actor.state = 0;
+                        Actor.IF = 0;
+                        Actor.State = 0;
                     }
-
                 }
             }
         }
-        void managechargeanimation()
+        void ManageChargeAnimation()
         {
-            if(fireball.Count > 0)
+            if (Fireball.Count > 0)
             {
-                for(int i = 0; i < fireball.Count; i++)
+                for (int i = 0; i < Fireball.Count; i++)
                 {
-                    ball ptrv = fireball[i];
-                    ptrv.x += 10;
-                    ptrv.cf++;
-                    if ((ptrv.x + ptrv.charge[ptrv.cf].Width) > fa7l.x -30 && fa7l.x > ptrv.x)
+                    ball ptrv = Fireball[i];
+                    ptrv.X += 10;
+                    ptrv.IF++;
+                    if ((ptrv.X + ptrv.Charge[ptrv.IF].Width) > Fa7l.X - 30 && Fa7l.X > ptrv.X)
                     {
-                        ptrv.cf = 6;
+                        ptrv.IF = 6;
                     }
-                    else if(ptrv.cf >= ptrv.charge.Count-7)
+                    else if (ptrv.IF >= ptrv.Charge.Count - 7)
                     {
-                        ptrv.cf = 0;
+                        ptrv.IF = 0;
                     }
 
-                    if (ptrv.w == 20 || ptrv.cf == ptrv.charge.Count)
+                    if (ptrv.W == 20 || ptrv.IF == ptrv.Charge.Count)
                     {
-                        fireball.RemoveAt(i);
+                        Fireball.RemoveAt(i);
                         i--;
                     }
-                    ptrv.w++;
+                    ptrv.W++;
                 }
             }
         }
-        
-        void enemyhitcheck()
+
+        void CheckEnemyHit()
         {
-            if (hero.state == 5 && (hero.x + hero.attack1[hero.cf].Width >= fa7l.x) && fa7l.x > hero.x && isattack)
+            if (Hero.State == 5 && (Hero.X + Hero.Attack1[Hero.IF].Width >= Fa7l.X) && Fa7l.X > Hero.X && isAttack)
             {
-                if (!fa7l.gothit)
+                if (!Fa7l.GotHit)
                 {
-                    fa7l.health -= 10;
-                    fa7l.gothit = true;
-                    deadcheck(fa7l);
+                    Fa7l.Health -= 10;
+                    Fa7l.GotHit = true;
+                    CheckDead(Fa7l);
                 }
             }
-            else if(hero.state == 7 && (hero.x + hero.attack3[hero.cf].Width >= fa7l.x-30) && fa7l.x > hero.x && isattack)
+            else if (Hero.State == 7 && (Hero.X + Hero.Attack3[Hero.IF].Width >= Fa7l.X - 30) && Fa7l.X > Hero.X && isAttack)
             {
 
-                fa7l.health -= 1;
-                fa7l.gothit = true;
-                deadcheck(fa7l);
+                Fa7l.Health -= 1;
+                Fa7l.GotHit = true;
+                CheckDead(Fa7l);
             }
-            if (fireball.Count > 0)
+            if (Fireball.Count > 0)
             {
-                for (int i = 0; i < fireball.Count; i++)
+                for (int i = 0; i < Fireball.Count; i++)
                 {
-                    if ((fireball[i].x + fireball[i].charge[fireball[i].cf].Width) > fa7l.x && fa7l.x > fireball[i].x)
+                    if ((Fireball[i].X + Fireball[i].Charge[Fireball[i].IF].Width) > Fa7l.X && Fa7l.X > Fireball[i].X)
                     {
-                        fa7l.health -= 5;
-                        fa7l.gothit = true;
-                        deadcheck(fa7l);
+                        Fa7l.Health -= 5;
+                        Fa7l.GotHit = true;
+                        CheckDead(Fa7l);
                     }
                 }
             }
-            
+
         }
-        void deadcheck(actor enemy)
+        void CheckDead(CActor enemy)
         {
-            if (enemy.health > 0)
+            if (enemy.Health > 0)
             {
-                enemy.state = 3;
+                enemy.State = 3;
             }
-            else if (enemy.health < 0)
+            else if (enemy.Health < 0)
             {
-                enemy.state = 4;
-                enemy.cf = 0;
+                enemy.State = 4;
+                enemy.IF = 0;
+            }
+
+        }
+        void Jump()
+        {
+            if (Hero.State == 2 || Hero.State == 3 || Hero.State == 4)
+            {
+                if (Hero.IF < 5)
+                {
+                    Hero.Y -= 12;
+                }
+                else
+                {
+                    Hero.Y += 15;
+                }
+                if (Hero.State == 3)
+                {
+                    if (Hero.X < ClientSize.Width / 2 - Hero.Idle[0].Width / 2)
+                    {
+                        Hero.X += 10;
+                    }
+                    else
+                    {
+                        BStartX += 25;
+                    }
+                }
+                else if (Hero.State == 4)
+                {
+                    if (BStartX > 25)
+                    {
+                        BStartX -= 25;
+                    }
+                    else
+                    {
+                        Hero.X -= 10;
+                    }
+                }
+                Hero.IF++;
+                if (Hero.IF == 9)
+                {
+                    Hero.State = 0;
+                    Hero.IF = 0;
+                }
             }
         }
     }
