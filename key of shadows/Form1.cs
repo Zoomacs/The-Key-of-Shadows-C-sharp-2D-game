@@ -64,6 +64,9 @@ namespace key_of_shadows
         List<tiles> floor = new List<tiles>();
         CActor Background = new CActor();
         int BStartX, BStartY = 600;     //1300
+        bool keyA = false;
+        bool keyD = false;
+        bool keyW = false;
         public Form1()
         {
             WindowState = FormWindowState.Maximized;
@@ -106,6 +109,7 @@ namespace key_of_shadows
             createskewar();
             createdemon();
             createladder();
+            Manageheromovement();
         }
 
         private void Form1_Paint(object sender, PaintEventArgs e)
@@ -141,14 +145,14 @@ namespace key_of_shadows
                         }
                         else
                         {
-                            Hero.X -= 10;
+                            keyA = true;
                         }
                     }
                     if (e.KeyCode == Keys.D)
                     {
                         if (Hero.X < ClientSize.Width / 2 - Hero.Idle[0].Width / 2)
                         {
-                            Hero.X += 10;
+                            keyD = true;
                         }
                         else
                         {
@@ -166,6 +170,7 @@ namespace key_of_shadows
                 {
                     if (Hero.State != 2)
                     {
+                        keyW = true;
                         Hero.IF = 0;
                         Hero.State = 2;
                     }
@@ -206,6 +211,9 @@ namespace key_of_shadows
                 Hero.State = 0;
                 Hero.IF = 0;
             }
+            if (e.KeyCode == Keys.W) { keyW = false; }
+            if (e.KeyCode == Keys.A) { keyA = false; }
+            if (e.KeyCode == Keys.D) { keyD = false; }
 
         }
 
@@ -233,7 +241,11 @@ namespace key_of_shadows
                 LaserOn = false;
             }
         }
-
+        void Manageheromovement()
+        {
+            if (keyA == true) { Hero.X -= 10; }
+            if (keyD == true) { Hero.X += 10; }
+        }
         void ManageChargeAnimation(CActor Actor)
         {
             if (Actor.State == 9)
