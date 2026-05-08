@@ -1,11 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace key_of_shadows
@@ -48,7 +43,7 @@ namespace key_of_shadows
     }
     public partial class Form1 : Form
     {
-        int count = 0;
+
         bool LaserOn = false;
         bool isAttack = false;
         Bitmap off;
@@ -59,16 +54,18 @@ namespace key_of_shadows
         CActor Skespe = new CActor();
         CActor Skewar = new CActor();
         CActor Demon = new CActor();
-        CActor Torch = new CActor();
         List<CActor> Ladder = new List<CActor>();
         List<ball> Fireball = new List<ball>();
         List<tiles> floor = new List<tiles>();
         List<tiles> walls = new List<tiles>();
         CActor Background = new CActor();
         int BStartX, BStartY = 600;     //1300
-        bool keyA = false;
-        bool keyD = false;
         bool keyW = false;
+        bool keyA = false;
+        bool keyS = false;
+        bool keyD = false;
+        int ctJump, JumpLimit = 14;
+        int Speed = 25;
         public Form1()
         {
             WindowState = FormWindowState.Maximized;
@@ -87,16 +84,16 @@ namespace key_of_shadows
 
         private void Tt_Tick(object sender, EventArgs e)
         {
-            count++;
-            Torch.IF = (Torch.IF + 1) % 8;
-            Torch.Y = 700;
-            Jump();
-            ManageChargeAnimation(Hero);
-            ManageChargeAnimation();
-            ManageChargeAnimation(Fa7l);
-            DrawDubb(this.CreateGraphics());
-            CheckEnemyHit();
+            ManageHeroMove();
 
+            ManageActorAnimation(Hero);
+            ManageActorAnimation(Fa7l);
+            ManageChargeAnimation();
+
+            Jump();
+
+            CheckEnemyHit();
+            DrawDubb(CreateGraphics());
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -111,7 +108,6 @@ namespace key_of_shadows
             createskewar();
             createdemon();
             createladder();
-            Manageheromovement();
             Createwall();
         }
 
@@ -124,17 +120,19 @@ namespace key_of_shadows
         {
             if (e.KeyCode == Keys.W && CheckLadder("u"))
             {
+                keyW = true;
                 Hero.State = 9;
             }
             else if (e.KeyCode == Keys.S && CheckLadder("d"))
             {
+                keyS = true;
                 Hero.State = 9;
             }
-            else if (Hero.State == 0 || Hero.State == 1)
+            else if (Hero.State == 0 || Hero.State == 1 || Hero.State == 2)
             {
                 if (e.KeyCode == Keys.A || e.KeyCode == Keys.D)
                 {
-                    if (Hero.State != 1)
+                    if (Hero.State != 1 && Hero.State != 2)
                     {
                         Hero.IF = 0;
                         Hero.State = 1;
@@ -142,30 +140,19 @@ namespace key_of_shadows
 
                     if (e.KeyCode == Keys.A)
                     {
-                        if (BStartX > 25)
-                        {
-                            BStartX -= 25;
-                        }
-                        else
-                        {
-                            keyA = true;
-                        }
+                        keyA = true;
                     }
                     if (e.KeyCode == Keys.D)
                     {
-                        if (Hero.X < ClientSize.Width / 2 - Hero.Idle[0].Width / 2)
-                        {
-                            keyD = true;
-                        }
-                        else
-                        {
-                            BStartX += 25;
-                        }
+                        keyD = true;
                     }
-                    Hero.IF++;
-                    if (Hero.IF >= 8)
+                    if (Hero.State == 0 || Hero.State == 1)
                     {
-                        Hero.IF = 0;
+                        Hero.IF++;
+                        if (Hero.IF >= 8)
+                        {
+                            Hero.IF = 0;
+                        }
                     }
                 }
 
@@ -173,30 +160,12 @@ namespace key_of_shadows
                 {
                     if (Hero.State != 2)
                     {
-                        keyW = true;
                         Hero.IF = 0;
                         Hero.State = 2;
                     }
 
                 }
-                else if (e.KeyCode == Keys.E)
-                {
-                    if (Hero.State != 3)
-                    {
-                        Hero.IF = 0;
-                        Hero.State = 3;
-                    }
 
-                }
-                else if (e.KeyCode == Keys.Q)
-                {
-                    if (Hero.State != 4)
-                    {
-                        Hero.IF = 0;
-                        Hero.State = 4;
-                    }
-
-                }
                 if (e.KeyCode == Keys.R)
                 {
                     isAttack = true;
@@ -216,6 +185,7 @@ namespace key_of_shadows
             }
             if (e.KeyCode == Keys.W) { keyW = false; }
             if (e.KeyCode == Keys.A) { keyA = false; }
+            if (e.KeyCode == Keys.S) { keyS = false; }
             if (e.KeyCode == Keys.D) { keyD = false; }
 
         }
@@ -244,21 +214,45 @@ namespace key_of_shadows
                 LaserOn = false;
             }
         }
-        void Manageheromovement()
+        void ManageHeroMove()
         {
-            if (keyA == true) { Hero.X -= 10; }
-            if (keyD == true) { Hero.X += 10; }
-        }
-        void ManageChargeAnimation(CActor Actor)
-        {
-            if (Actor.State == 9)
+            if (keyA == true)
             {
-                if (Actor.IF >= Actor.Climb.Count)
+                if (BStartX > Speed && Hero.X < ClientSize.Width / 2 - Hero.Idle[0].Width / 2)
                 {
-                    Actor.IF = 0;
+                    BStartX -= Speed;
+                }
+                else
+                {
+                    if (Hero.X - 10 > Background.X)
+                    {
+                        Hero.X -= 10;
+                    }
                 }
             }
-            else if (Actor.State == 0)
+            if (keyD == true)
+            {
+                if (Hero.X < ClientSize.Width / 2 - Hero.Idle[0].Width / 2)
+                {
+                    Hero.X += 10;
+                }
+                else
+                {
+                    if (BStartX + ClientSize.Width + Speed < Background.X + Background.Img.Width)
+                    {
+                        BStartX += Speed;
+                    }
+                    else if (Hero.X + Hero.Idle[0].Width + 70 < Background.X + Background.Img.Width - BStartX)
+                    {
+                        Hero.X += 10;
+                    }
+                }
+            }
+        }
+        void ManageActorAnimation(CActor Actor)
+        {
+
+            if (Actor.State == 0)
             {
                 Actor.IF++;
                 if (Actor.IF >= Actor.Idle.Count)
@@ -270,6 +264,18 @@ namespace key_of_shadows
             {
                 Actor.IF++;
                 if (Actor.IF >= Actor.Walk.Count)
+                {
+                    Actor.IF--;
+                }
+            }
+            else if (Actor.State == 2)
+            {
+                Actor.IF++;
+                if (Actor.IF == 5 && ctJump < JumpLimit / 2)
+                {
+                    Actor.IF--;
+                }
+                else if (Actor.IF == 6 && ctJump > JumpLimit / 2 && ctJump < JumpLimit - 4)
                 {
                     Actor.IF--;
                 }
@@ -332,6 +338,15 @@ namespace key_of_shadows
                         Actor.IF = 0;
                         Actor.State = 0;
                     }
+                }
+            }
+            else if (Actor.State == 9)
+            {
+
+              //  Actor.IF++;
+                if (Actor.IF >= Actor.Climb.Count)
+                {
+                    Actor.IF = 0;
                 }
             }
 
@@ -411,55 +426,35 @@ namespace key_of_shadows
         }
         void Jump()
         {
-            if (Hero.State == 2 || Hero.State == 3 || Hero.State == 4)
+            if (Hero.State == 2)
             {
-                if (Hero.IF < 5)
+                if (ctJump < JumpLimit / 2)
                 {
                     Hero.Y -= 12;
                 }
                 else
                 {
-                    Hero.Y += 15;
+                    Hero.Y += 12;
                 }
-                if (Hero.State == 3)
-                {
-                    if (Hero.X < ClientSize.Width / 2 - Hero.Idle[0].Width / 2)
-                    {
-                        Hero.X += 10;
-                    }
-                    else
-                    {
-                        BStartX += 25;
-                    }
-                }
-                else if (Hero.State == 4)
-                {
-                    if (BStartX > 25)
-                    {
-                        BStartX -= 25;
-                    }
-                    else
-                    {
-                        Hero.X -= 10;
-                    }
-                }
-                Hero.IF++;
-                if (Hero.IF == 9)
+
+                ctJump++;
+                if (ctJump == JumpLimit)
                 {
                     Hero.State = 0;
-                    Hero.IF = 0;
+                    Hero.IF=0;
+                    ctJump = 0;
                 }
             }
         }
 
-        bool CheckLadder(string direction)
+        bool CheckLadder(string Direction)
         {
             for (int i = 0; i < Ladder.Count; i++)
             {
-                if (Hero.X > Ladder[i].X - BStartX && Hero.X + Hero.Idle[0].Width < Ladder[i].X + Ladder[i].Img.Width - BStartX && Hero.Y + Hero.Idle[0].Height > Ladder[i].Y - BStartY - 30 && Hero.Y + Hero.Idle[0].Height < Ladder[i].Y + Ladder[i].Img.Height - BStartY && direction == "u")
+                if (Hero.X > Ladder[i].X - BStartX && Hero.X + Hero.Idle[0].Width < Ladder[i].X + Ladder[i].Img.Width - BStartX && Hero.Y + Hero.Idle[0].Height > Ladder[i].Y - BStartY - 30 && Hero.Y + Hero.Idle[0].Height < Ladder[i].Y + Ladder[i].Img.Height - BStartY && Direction == "u")
                 {
                     Hero.IF++;
-                    BStartY -= 25;
+                    BStartY -= Speed;
                     if (Hero.Y < Ladder[i].Y - BStartY)
                     {
                         BStartY = 680 - Hero.Idle[0].Height - Ladder[i].Img.Height - 20;
@@ -468,10 +463,10 @@ namespace key_of_shadows
                     }
                     return true;
                 }
-                else if (Hero.X > Ladder[i].X - BStartX && Hero.X + Hero.Idle[0].Width < Ladder[i].X + Ladder[i].Img.Width - BStartX && Hero.Y + Hero.Idle[0].Height > Ladder[i].Y - BStartY - 100 && Hero.Y + Hero.Idle[0].Height < Ladder[i].Y + Ladder[i].Img.Height - BStartY && direction == "d")
+                else if (Hero.X > Ladder[i].X - BStartX && Hero.X + Hero.Idle[0].Width < Ladder[i].X + Ladder[i].Img.Width - BStartX && Hero.Y + Hero.Idle[0].Height > Ladder[i].Y - BStartY - 100 && Hero.Y + Hero.Idle[0].Height < Ladder[i].Y + Ladder[i].Img.Height - BStartY && Direction == "d")
                 {
                     Hero.IF++;
-                    BStartY += 25;
+                    BStartY += Speed;
                     if (Hero.Y + Hero.Idle[0].Height > Ladder[i].Y + Ladder[i].Img.Height - BStartY - 70)
                     {
                         BStartY = 680 - Hero.Idle[0].Height;
@@ -498,10 +493,7 @@ namespace key_of_shadows
             g2.Clear(BackColor);
             Drawbackground(g2);
             Drawladder(g2);
-            if (Fireball.Count > 0)
-            {
-                drawfireball(g2);
-            }
+            drawfireball(g2);
             drawfa7l(g2);
             drawhero(g2);
             Drawfloor(g2);
@@ -530,7 +522,7 @@ namespace key_of_shadows
             {
                 tiles ptrv = walls[i];
                 g.DrawRectangle(pn, ptrv.x - BStartX, ptrv.y - BStartY + 1520, ptrv.w, ptrv.h);
-                g.DrawImage(ptrv.img, ptrv.x - BStartX, ptrv.y);
+                g.DrawImage(ptrv.img, ptrv.x - BStartX, ptrv.y - BStartY + 1520);
             }
         }
         void Drawladder(Graphics g)
@@ -557,11 +549,8 @@ namespace key_of_shadows
         void drawhero(Graphics g)
         {
             int frameToDraw = Hero.IF;
-            if (Hero.State == 9)
-            {
-                g.DrawImage(Hero.Climb[frameToDraw], Hero.X, Hero.Y);
-            }
-            else if (Hero.State == 0 && Hero.Idle.Count > frameToDraw)
+
+            if (Hero.State == 0 && Hero.Idle.Count > frameToDraw)
             {
                 g.DrawImage(Hero.Idle[frameToDraw], Hero.X, Hero.Y);
             }
@@ -569,7 +558,7 @@ namespace key_of_shadows
             {
                 g.DrawImage(Hero.Walk[frameToDraw], Hero.X, Hero.Y);
             }
-            else if (Hero.State == 2 || Hero.State == 3 || Hero.State == 4)
+            else if (Hero.State == 2)
             {
                 g.DrawImage(Hero.Jump[frameToDraw], Hero.X, Hero.Y);
             }
@@ -584,6 +573,10 @@ namespace key_of_shadows
             else if (Hero.State == 7)
             {
                 g.DrawImage(Hero.Attack3[frameToDraw], Hero.X, Hero.Y);
+            }
+            else if (Hero.State == 9)
+            {
+                g.DrawImage(Hero.Climb[frameToDraw], Hero.X, Hero.Y);
             }
         }
         void drawfireball(Graphics g)
