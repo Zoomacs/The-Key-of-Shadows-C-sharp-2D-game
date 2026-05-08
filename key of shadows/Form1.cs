@@ -40,6 +40,7 @@ namespace key_of_shadows
         public List<Bitmap> Dead = new List<Bitmap>();
         public List<Bitmap> Charge = new List<Bitmap>();
         public int[] xadd;
+        public int floor;
     }
     public partial class Form1 : Form
     {
@@ -59,16 +60,17 @@ namespace key_of_shadows
         List<tiles> floor = new List<tiles>();
         List<tiles> walls = new List<tiles>();
         CActor Background = new CActor();
-        int BStartX, BStartY = 600;     //1300
+        int BStartX, BStartY = 1510;     //1300
         bool keyW = false;
         bool keyA = false;
         bool keyS = false;
         bool keyD = false;
         int ctJump, JumpLimit = 14;
-        int Speed = 25;
+        int Speed = 50;
         public Form1()
         {
             WindowState = FormWindowState.Maximized;
+            FormBorderStyle = FormBorderStyle.None;
             KeyDown += Form1_KeyDown;
             KeyUp += Form1_KeyUp;
             MouseDown += Form1_MouseDown;
@@ -216,7 +218,7 @@ namespace key_of_shadows
         }
         void ManageHeroMove()
         {
-            if (keyA == true)
+            if (keyA == true&& CheckWalls("a"))
             {
                 if (BStartX > Speed && Hero.X < ClientSize.Width / 2 - Hero.Idle[0].Width / 2)
                 {
@@ -224,17 +226,17 @@ namespace key_of_shadows
                 }
                 else
                 {
-                    if (Hero.X - 10 > Background.X)
+                    if (Hero.X - Speed > Background.X)
                     {
-                        Hero.X -= 10;
+                        Hero.X -= Speed;
                     }
                 }
             }
-            if (keyD == true)
+            if (keyD == true&& CheckWalls("d"))
             {
                 if (Hero.X < ClientSize.Width / 2 - Hero.Idle[0].Width / 2)
                 {
-                    Hero.X += 10;
+                    Hero.X += Speed;
                 }
                 else
                 {
@@ -244,7 +246,7 @@ namespace key_of_shadows
                     }
                     else if (Hero.X + Hero.Idle[0].Width + 70 < Background.X + Background.Img.Width - BStartX)
                     {
-                        Hero.X += 10;
+                        Hero.X += Speed;
                     }
                 }
             }
@@ -381,19 +383,21 @@ namespace key_of_shadows
 
         void CheckEnemyHit()
         {
-            if (Hero.State == 5 && (Hero.X + Hero.Attack1[Hero.IF].Width >= Fa7l.X) && Fa7l.X > Hero.X && isAttack)
+            if (Hero.State == 5 && (Hero.X + Hero.Attack1[Hero.IF].Width >= Fa7l.X - BStartX - 30) && Fa7l.X - BStartX > Hero.X && isAttack && !Fa7l.isDead)
             {
                 if (!Fa7l.GotHit)
                 {
                     Fa7l.Health -= 10;
+                    Fa7l.IF = 0;
                     Fa7l.GotHit = true;
                     CheckDead(Fa7l);
                 }
             }
-            else if (Hero.State == 7 && (Hero.X + Hero.Attack3[Hero.IF].Width >= Fa7l.X - 30) && Fa7l.X > Hero.X && isAttack)
+            else if (Hero.State == 7 && (Hero.X + Hero.Attack3[Hero.IF].Width >= Fa7l.X - BStartX - 30) && Fa7l.X - BStartX > Hero.X && isAttack && !Fa7l.isDead)
             {
 
                 Fa7l.Health -= 1;
+                Fa7l.IF = 0;
                 Fa7l.GotHit = true;
                 CheckDead(Fa7l);
             }
@@ -401,9 +405,10 @@ namespace key_of_shadows
             {
                 for (int i = 0; i < Fireball.Count; i++)
                 {
-                    if ((Fireball[i].X + Fireball[i].Charge[Fireball[i].IF].Width) > Fa7l.X && Fa7l.X > Fireball[i].X)
+                    if ((Fireball[i].X + Fireball[i].Charge[Fireball[i].IF].Width) > Fa7l.X - BStartX && Fa7l.X - BStartX - 30 > Fireball[i].X && !Fa7l.isDead)
                     {
                         Fa7l.Health -= 5;
+                        Fa7l.IF = 0;
                         Fa7l.GotHit = true;
                         CheckDead(Fa7l);
                     }
@@ -421,6 +426,7 @@ namespace key_of_shadows
             {
                 enemy.State = 4;
                 enemy.IF = 0;
+                enemy.isDead = true;
             }
 
         }
@@ -457,7 +463,7 @@ namespace key_of_shadows
                     BStartY -= Speed;
                     if (Hero.Y < Ladder[i].Y - BStartY)
                     {
-                        BStartY = 680 - Hero.Idle[0].Height - Ladder[i].Img.Height - 20;
+                        BStartY = floor[Ladder[i].floor].y - Hero.Idle[0].Height - Ladder[i].Img.Height -250;
                         Hero.State = 0;
                         return false;
                     }
@@ -469,7 +475,7 @@ namespace key_of_shadows
                     BStartY += Speed;
                     if (Hero.Y + Hero.Idle[0].Height > Ladder[i].Y + Ladder[i].Img.Height - BStartY - 70)
                     {
-                        BStartY = 680 - Hero.Idle[0].Height;
+                        BStartY = floor[Ladder[i].floor].y - Hero.Idle[0].Height - 230;
                         //BStartY = Ladder.Y + Ladder.Img.Height - Hero.Idle[0].Height - BStartY - 65;
                         Hero.State = 0;
                         return false;
@@ -512,7 +518,7 @@ namespace key_of_shadows
             for (int i = 0; i < 5; i++)
             {
                 tiles ptrv = floor[i];
-                g.DrawRectangle(pn, ptrv.x - BStartX, ptrv.y - BStartY + 1520, ptrv.w, ptrv.h);
+                g.DrawRectangle(pn, ptrv.x - BStartX, ptrv.y - BStartY, ptrv.w, ptrv.h);
             }
         }
         void Drawwalls(Graphics g)
@@ -521,8 +527,8 @@ namespace key_of_shadows
             for (int i = 0; i < 5; i++)
             {
                 tiles ptrv = walls[i];
-                g.DrawRectangle(pn, ptrv.x - BStartX, ptrv.y - BStartY + 1520, ptrv.w, ptrv.h);
-                g.DrawImage(ptrv.img, ptrv.x - BStartX, ptrv.y - BStartY + 1520);
+                g.DrawRectangle(pn, ptrv.x - BStartX, ptrv.y - BStartY, ptrv.img.Width, ptrv.img.Height);
+                g.DrawImage(ptrv.img, ptrv.x - BStartX, ptrv.y - BStartY);
             }
         }
         void Drawladder(Graphics g)
@@ -594,13 +600,13 @@ namespace key_of_shadows
         }
         void Createfloor()
         {
-            int floory = 769, yadd = 0;
+            int floory = 450, yadd = 0;
             for (int i = 0; i < 5; i++)
             {
                 tiles pnn = new tiles();
                 pnn.x = 0;
-                pnn.y = floory - yadd;
-                yadd += 436 + 26;
+                pnn.y = floory + yadd;
+                yadd += 436 + 21;
                 pnn.w = 4245;
                 pnn.h = 26;
                 floor.Add(pnn);
@@ -610,25 +616,75 @@ namespace key_of_shadows
         {
             tiles pnn = new tiles();
             pnn.x = 2280;
-            pnn.y = 1860;
+            pnn.y = 1857;
             pnn.img = new Bitmap("pillers\\p51.png");
             walls.Add(pnn);
+            pnn = new tiles();
             pnn.x = 1560;
-            pnn.y = 1369;
+            pnn.y = 1390;
             pnn.img = new Bitmap("pillers\\p411.png");
             walls.Add(pnn);
+            pnn = new tiles();
             pnn.x = 840;
-            pnn.y = 938;
+            pnn.y = 935;
             pnn.img = new Bitmap("pillers\\p3.png");
             walls.Add(pnn);
+            pnn = new tiles();
             pnn.x = 2630;
             pnn.y = 938;
             pnn.img = new Bitmap("pillers\\p31.png");
             walls.Add(pnn);
+            pnn = new tiles();
             pnn.x = 1830;
-            pnn.y = 480;
+            pnn.y = 478;
             pnn.img = new Bitmap("pillers\\p21.png");
             walls.Add(pnn);
+        }
+        void createladder()
+        {
+            CActor pnn = new CActor();
+            pnn.Img = new Bitmap("ladder.png");
+            pnn.X = 1300;
+            pnn.Y = 920;
+            pnn.floor = 1;
+            Ladder.Add(pnn);
+            pnn = new CActor();
+            pnn.Img = new Bitmap("ladder.png");
+            pnn.X = 2800;
+            pnn.Y = 920;
+            pnn.floor = 1;
+            Ladder.Add(pnn);
+            pnn = new CActor();
+            pnn.Img = new Bitmap("ladder.png");
+            pnn.X = 3780;
+            pnn.Y = 470;
+            pnn.floor = 0;
+            Ladder.Add(pnn);
+            pnn = new CActor();
+            pnn.Img = new Bitmap("ladder.png");
+            pnn.X = 4015;
+            pnn.Y = 1370;
+            pnn.floor = 2;
+            Ladder.Add(pnn);
+            pnn = new CActor();
+            pnn.Img = new Bitmap("ladder.png");
+            pnn.X = 1345;
+            pnn.Y = 1830;
+            pnn.floor = 3;
+            Ladder.Add(pnn);
+            pnn = new CActor();
+            pnn.Img = new Bitmap("ladder.png");
+            pnn.X = 1860;
+            pnn.Y = 1830;
+            pnn.floor = 3;
+            Ladder.Add(pnn);
+            pnn = new CActor();
+            pnn.Img = new Bitmap("ladder.png");
+            pnn.X = 2660;
+            pnn.Y = 1830;
+            pnn.floor = 3;
+            Ladder.Add(pnn);
+
         }
 
         void Createhero()
@@ -661,7 +717,7 @@ namespace key_of_shadows
             }
             Fa7l.xadd = new int[] { 0, 0, 0, -8, -21, -27, 0, 0, 0, 0 };
             Fa7l.X = 1150;
-            Fa7l.Y = 723 - Fa7l.Walk[0].Height;
+            Fa7l.Y = floor[4].y - Fa7l.Attack1[2].Height;
             Fa7l.State = 0;
             Fa7l.Health = 11;
         }
@@ -718,16 +774,20 @@ namespace key_of_shadows
                 if (i <= 4) { Demon.Idle.Add(new Bitmap("demon\\idle\\demonideal" + i + ".png")); }
             }
         }
-        void createladder()
+        bool CheckWalls(string Direction)
         {
-            for (int i = 0; i < 1; i++)
+            for (int i = 0; i < walls.Count; i++)
             {
-                CActor pnn = new CActor();
-                pnn.Img = new Bitmap("ladder.png");
-                pnn.X = 1050;
-                pnn.Y = 920;
-                Ladder.Add(pnn);
+                if (Hero.X +Hero.Idle[0].Width+45> walls[i].x - BStartX && Hero.X < walls[i].x - BStartX && Hero.Y >= walls[i].y - BStartY && Hero.Y < walls[i].y + walls[i].img.Height - BStartY&&Direction=="d")
+                {
+                    return false;
+                }
+                else if (Hero.X - 130< walls[i].x - BStartX && Hero.X > walls[i].x - BStartX && Hero.Y >= walls[i].y - BStartY && Hero.Y < walls[i].y + walls[i].img.Height - BStartY&&Direction=="a")
+                {
+                    return false;
+                }
             }
+            return true;
         }
     }
 }
