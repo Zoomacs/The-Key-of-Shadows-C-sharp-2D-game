@@ -13,6 +13,7 @@ namespace key_of_shadows
     class tiles
     {
         public int x, y, w, h;
+        public Bitmap img;
     }
 
     class ball
@@ -62,6 +63,7 @@ namespace key_of_shadows
         List<CActor> Ladder = new List<CActor>();
         List<ball> Fireball = new List<ball>();
         List<tiles> floor = new List<tiles>();
+        List<tiles> walls = new List<tiles>();
         CActor Background = new CActor();
         int BStartX, BStartY = 600;     //1300
         bool keyA = false;
@@ -110,6 +112,7 @@ namespace key_of_shadows
             createdemon();
             createladder();
             Manageheromovement();
+            Createwall();
         }
 
         private void Form1_Paint(object sender, PaintEventArgs e)
@@ -502,6 +505,7 @@ namespace key_of_shadows
             drawfa7l(g2);
             drawhero(g2);
             Drawfloor(g2);
+            Drawwalls(g2);
         }
         void Drawbackground(Graphics g)
         {
@@ -516,7 +520,17 @@ namespace key_of_shadows
             for (int i = 0; i < 5; i++)
             {
                 tiles ptrv = floor[i];
-                g.DrawRectangle(pn, ptrv.x, ptrv.y - BStartY + 1520, ptrv.w, ptrv.h);
+                g.DrawRectangle(pn, ptrv.x - BStartX, ptrv.y - BStartY + 1520, ptrv.w, ptrv.h);
+            }
+        }
+        void Drawwalls(Graphics g)
+        {
+            Pen pn = new Pen(Color.Yellow, 2);
+            for (int i = 0; i < 5; i++)
+            {
+                tiles ptrv = walls[i];
+                g.DrawRectangle(pn, ptrv.x - BStartX, ptrv.y - BStartY + 1520, ptrv.w, ptrv.h);
+                g.DrawImage(ptrv.img, ptrv.x - BStartX, ptrv.y);
             }
         }
         void Drawladder(Graphics g)
@@ -598,6 +612,30 @@ namespace key_of_shadows
                 pnn.h = 26;
                 floor.Add(pnn);
             }
+        }
+        void Createwall()
+        {
+            tiles pnn = new tiles();
+            pnn.x = 2280;
+            pnn.y = 1860;
+            pnn.img = new Bitmap("pillers\\p51.png");
+            walls.Add(pnn);
+            pnn.x = 1560;
+            pnn.y = 1369;
+            pnn.img = new Bitmap("pillers\\p411.png");
+            walls.Add(pnn);
+            pnn.x = 840;
+            pnn.y = 938;
+            pnn.img = new Bitmap("pillers\\p3.png");
+            walls.Add(pnn);
+            pnn.x = 2630;
+            pnn.y = 938;
+            pnn.img = new Bitmap("pillers\\p31.png");
+            walls.Add(pnn);
+            pnn.x = 1830;
+            pnn.y = 480;
+            pnn.img = new Bitmap("pillers\\p21.png");
+            walls.Add(pnn);
         }
 
         void Createhero()
