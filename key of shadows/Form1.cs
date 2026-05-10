@@ -5,6 +5,13 @@ using System.Windows.Forms;
 
 namespace key_of_shadows
 {
+    public class HealthBar
+    {
+        public int X, Y;
+        public int IF;
+        public int Amount = 100;
+        public List<Bitmap> Imgs = new List<Bitmap>();
+    }
     class Elevator
     {
         public int X, Y;
@@ -41,6 +48,7 @@ namespace key_of_shadows
         public bool GotHit = false;
         public bool isDead = false;
         public Bitmap Img;
+        public HealthBar H = new HealthBar();
         public List<Bitmap> Imgs = new List<Bitmap>();
         public List<Bitmap> Idle = new List<Bitmap>();
         public List<Bitmap> Walk = new List<Bitmap>();
@@ -81,6 +89,7 @@ namespace key_of_shadows
         bool keyD = false;
         int ctJump, JumpLimit = 4;
         int Speed = 50;
+        int damage = 12;
         public Form1()
         {
             WindowState = FormWindowState.Maximized;
@@ -100,6 +109,7 @@ namespace key_of_shadows
 
         private void Tt_Tick(object sender, EventArgs e)
         {
+            CheckHeroHealth();
             ManageHeroMove();
 
             ManageActorAnimation(Hero);
@@ -141,6 +151,7 @@ namespace key_of_shadows
             CreateLadder();
             CreateWall();
             CreateElevator();
+            CreateHealthBar();
             BStartY = Background.Img.Height - ClientSize.Height;
         }
 
@@ -215,6 +226,10 @@ namespace key_of_shadows
                 {
                     isAttack = true;
                     Hero.State = 6;
+                }
+                if (e.KeyCode == Keys.H)
+                {
+                    Hero.H.Amount -= damage;
                 }
             }
         }
@@ -567,6 +582,7 @@ namespace key_of_shadows
             DrawFloors(g2);
             DrawWalls(g2);
             DrawElevator(g2);
+            DrawHealthBar(g2);
         }
         void DrawBackground(Graphics g)
         {
@@ -1007,6 +1023,22 @@ namespace key_of_shadows
                     }
                 }
             }
+        }
+        void CreateHealthBar()
+        {
+            for (int i = 0; i < 8; i++)
+            {
+                Hero.H.Imgs.Add(new Bitmap("healthbar\\h" + i + ".png"));
+            }
+        }
+        void DrawHealthBar(Graphics g)
+        {
+            g.DrawImage(Hero.H.Imgs[Hero.H.IF], Hero.H.X, Hero.H.Y);
+        }
+        void CheckHeroHealth()
+        {
+            Hero.H.IF = Hero.H.Amount / 12 - 1;
+            if (Hero.H.IF < 0) Hero.H.IF = 0;
         }
     }
 }
