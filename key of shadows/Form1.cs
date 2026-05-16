@@ -32,36 +32,64 @@ namespace key_of_shadows
         public int X, Y;
         public int W, D;
         public int IF;
+        public int Floor;
         public List<Bitmap> Charge = new List<Bitmap>();
     }
     class CActor
     {
         public int X, Y;
-        public int W, D;
+        public int D;
+        public int Startpoint, endpoint;
         public int State;
         public int Speed = 20;
         public bool Direction;
-        public int Start, End;
         public bool JState;
         public int IF;
+        public int IdleTimer;
+        public int StunTimer;
+        public int DetectRange;
+        public int AttackRange;
+        public int RecoveryDuration;
+        public int HurtStunDuration;
+        public bool IsStunned;
         public int Health;
         public bool GotHit = false;
         public bool isDead = false;
         public Bitmap Img;
         public HealthBar H = new HealthBar();
         public List<Bitmap> Imgs = new List<Bitmap>();
-        public List<Bitmap> Idle = new List<Bitmap>();
-        public List<Bitmap> Walk = new List<Bitmap>();
-        public List<Bitmap> Jump = new List<Bitmap>();
-        public List<Bitmap> Climb = new List<Bitmap>();
-        public List<Bitmap> Attack1 = new List<Bitmap>();
-        public List<Bitmap> Attack2 = new List<Bitmap>();
-        public List<Bitmap> Attack3 = new List<Bitmap>();
-        public List<Bitmap> Hurt = new List<Bitmap>();
-        public List<Bitmap> Dead = new List<Bitmap>();
-        public List<Bitmap> Charge = new List<Bitmap>();
+
+        public List<Bitmap> IdleR = new List<Bitmap>();
+        public List<Bitmap> IdleL = new List<Bitmap>();
+
+        public List<Bitmap> WalkR = new List<Bitmap>();
+        public List<Bitmap> WalkL = new List<Bitmap>();
+
+        public List<Bitmap> JumpR = new List<Bitmap>();
+        public List<Bitmap> JumpL = new List<Bitmap>();
+
+        public List<Bitmap> ClimbR = new List<Bitmap>();
+        public List<Bitmap> ClimbL = new List<Bitmap>();
+
+        public List<Bitmap> Attack1R = new List<Bitmap>();
+        public List<Bitmap> Attack1L = new List<Bitmap>();
+
+        public List<Bitmap> Attack2R = new List<Bitmap>();
+        public List<Bitmap> Attack2L = new List<Bitmap>();
+
+        public List<Bitmap> Attack3R = new List<Bitmap>();
+        public List<Bitmap> Attack3L = new List<Bitmap>();
+
+        public List<Bitmap> HurtR = new List<Bitmap>();
+        public List<Bitmap> HurtL = new List<Bitmap>();
+
+        public List<Bitmap> DeadR = new List<Bitmap>();
+        public List<Bitmap> DeadL = new List<Bitmap>();
+
+        public List<Bitmap> ChargeR = new List<Bitmap>();
+        public List<Bitmap> ChargeL = new List<Bitmap>();
         public int[] Xadd;
-        public int Floors;
+        public int Floor;
     }
     public partial class Form1 : Form
     {
@@ -81,15 +109,27 @@ namespace key_of_shadows
         List<Tile> Floors = new List<Tile>();
         List<Tile> Walls = new List<Tile>();
         CActor Background = new CActor();
+        List<Bitmap> idle;
+        List<Bitmap> walk;
+        List<Bitmap> jump;
+        List<Bitmap> attack1;
+        List<Bitmap> attack2;
+        List<Bitmap> attack3;
+        List<Bitmap> hurt;
+        List<Bitmap> dead;
+        List<Bitmap> climb;
         int BStartX, BStartY;
-        bool keyW = false;
-        bool keyW2 = false;
-        bool keyA = false;
-        bool keyS = false;
-        bool keyD = false;
+        bool keyW;
+        bool keyW2;
+        bool keyA;
+        bool keyS;
+        bool keyD;
+        bool isClimbing;
         int ctJump, JumpLimit = 4;
         int Speed = 50;
         int damage = 12;
+        int skespestate;
+        bool skespestatechange = false;
         public Form1()
         {
             WindowState = FormWindowState.Maximized;
@@ -100,7 +140,7 @@ namespace key_of_shadows
             MouseUp += Form1_MouseUp;
             Paint += Form1_Paint;
             Load += Form1_Load;
-            BackColor = Color.Orange;
+            BackColor = Color.Black;
             tt.Tick += Tt_Tick; ;
             tt.Interval = 100;
             tt.Start();
@@ -119,22 +159,25 @@ namespace key_of_shadows
             ManageActorAnimation(Skewar);
             ManageActorAnimation(Demon);
 
-            MoveEnemy(Fa7l);
-            MoveEnemy(Skearch);
-            MoveEnemy(Skespe);
-            MoveEnemy(Skewar);
-            MoveEnemy(Demon);
+            CheckEnemyHit(Skespe);
+            CheckEnemyHit(Skewar);
+            CheckEnemyHit(Fa7l);
 
+            CheckHeroHit(Skespe);
+            ManageSkespeBehavior();
+            Manageenemybehavior(Fa7l);
+            CheckHeroHit(Fa7l);
+            CheckHeroHit(Hero);
 
             ManageChargeAnimation();
 
             Jump();
             Text = Hero.State.ToString() + "  " + Hero.IF.ToString();
-            CheckEnemyHit();
             CheckGravity();
             MoveElevator();
 
             DrawDubb(CreateGraphics());
+            RunStunTimer(Hero);
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -193,10 +236,12 @@ namespace key_of_shadows
                     if (e.KeyCode == Keys.A)
                     {
                         keyA = true;
+                        Hero.Direction = true;
                     }
                     if (e.KeyCode == Keys.D)
                     {
                         keyD = true;
+                        Hero.Direction = false;
                     }
                     if (Hero.State == 0 || Hero.State == 1)
                     {
@@ -273,6 +318,9 @@ namespace key_of_shadows
         }
         void ManageHeroMove()
         {
+            List<Bitmap> heroIdle;
+            if (Hero.Direction) { heroIdle = Hero.IdleL; } else { heroIdle = Hero.IdleR; }
+
             if (keyA && CheckWalls("a"))
             {
                 if (Hero.State != 2)
@@ -290,7 +338,7 @@ namespace key_of_shadows
                 {
                     Hero.State = 1;
                 }
-                if (Hero.X + Hero.Idle[0].Width + 50 < Background.Img.Width)
+                if (Hero.X + heroIdle[0].Width + 50 < Background.Img.Width)
                 {
                     Hero.X += Speed;
                 }
@@ -307,12 +355,239 @@ namespace key_of_shadows
 
             CheckBorders();
         }
+        void ManageSkespeBehavior()
+        {
+            if (Skespe.isDead) { return; }
+            if (Skespe.IsStunned)
+            {
+                RunStunTimer(Skespe);
+                return;
+            }
+
+            int heroWorldX = Hero.X + BStartX;
+            int distance = heroWorldX - Skespe.X;
+            if (distance < 0)
+            {
+                distance = distance * -1;
+            }
+
+            if (Hero.Floor != Skespe.Floor)
+            {
+                RunMoveBehavior(Skespe);
+                return;
+            }
+            if (distance <= Skespe.DetectRange && distance >= Skespe.DetectRange / 2)
+            {
+                if (!skespestatechange)
+                {
+                    skespestate = 0;
+                    skespestatechange = true;
+                }
+            }
+            else
+            {
+                if (!skespestatechange)
+                {
+                    skespestate = 1;
+                    skespestatechange = true;
+                }
+            }
+            if (distance <= Skespe.AttackRange)
+            {
+                skespestatechange = false;
+                if (skespestate == 0)
+                {
+                    TriggerSkeSpeAttack2();
+                }
+                else
+                {
+                    TriggerAttack(Skespe);
+                }
+            }
+            else if (skespestate == 0)
+            {
+                Skespe.State = 9;
+                if (heroWorldX > Skespe.X)
+                {
+                    Skespe.X += Skespe.Speed * 2;
+                }
+                else
+                {
+                    Skespe.X -= Skespe.Speed * 2;
+                }
+            }
+            else
+            {
+                Skespe.State = 1;
+                if (heroWorldX > Skespe.X)
+                {
+                    Skespe.X += Skespe.Speed;
+                }
+                else
+                {
+                    Skespe.X -= Skespe.Speed;
+                }
+            }
+
+        }
+        void Manageenemybehavior(CActor enemy)
+        {
+            if (enemy.isDead) { return; };
+            if (enemy.IsStunned)
+            {
+                RunStunTimer(enemy);
+                return;
+            }
+            int heroWorldX = Hero.X + BStartX;
+            int distance = heroWorldX - enemy.X;
+            if (distance < 0)
+            {
+                distance = distance * -1;
+            }
+            if (distance <= enemy.DetectRange && Hero.Floor == enemy.Floor)
+            {
+                RunDetectBehavior(enemy, heroWorldX);
+            }
+            else
+            {
+                RunMoveBehavior(enemy);
+            }
+        }
+        void RunStunTimer(CActor enemy)
+        {
+            if (enemy.IsStunned)
+            {
+                enemy.StunTimer--;
+
+                if (enemy.StunTimer <= 0)
+                {
+                    enemy.IsStunned = false;
+                    enemy.StunTimer = 0;
+
+                    if (enemy.State == 3 || enemy.State == 5)
+                    {
+                        enemy.State = 0;
+                        enemy.IF = 0;
+                        enemy.GotHit = false;
+                    }
+                }
+            }
+        }
+        void RunMoveBehavior(CActor enemy)
+        {
+            if (enemy.State == 4) return;
+
+            if (enemy.State == 0)
+            {
+                enemy.IdleTimer--;
+                if (enemy.IdleTimer <= 0)
+                {
+                    enemy.D *= -1;
+                    enemy.IdleTimer = 5;
+                    enemy.State = 1;
+                    enemy.IF = 0;
+                }
+                return;
+            }
+
+            enemy.X += enemy.Speed * enemy.D;
+
+            if (enemy.D == 1 && enemy.X >= enemy.endpoint)
+            {
+                enemy.X -= enemy.Speed;
+                enemy.State = 0;
+                enemy.IF = 0;
+            }
+            else if (enemy.D == -1 && enemy.X <= enemy.Startpoint)
+            {
+                enemy.X += enemy.Speed;
+                enemy.State = 0;
+                enemy.IF = 0;
+            }
+        }
+        void RunDetectBehavior(CActor enemy, int heroWorldX)
+        {
+            int distance = heroWorldX - enemy.X;
+            if (distance < 0)
+            {
+                distance = distance * -1;
+            }
+
+            if (distance > enemy.AttackRange)
+            {
+                enemy.State = 1;
+                if (heroWorldX > enemy.X)
+                {
+                    enemy.X += enemy.Speed;
+                }
+                else
+                {
+                    enemy.X -= enemy.Speed;
+                }
+            }
+            else
+            {
+                TriggerAttack(enemy);
+            }
+        }
+        void TriggerSkeSpeAttack2()
+        {
+            if (Skespe.IsStunned) { return; }
+            if (Hero.isDead) { return; }
+            Skespe.State = 6;
+            Skespe.IF = 0;
+            Skespe.IsStunned = true;
+            Skespe.StunTimer = Skespe.RecoveryDuration;
+
+        }
+        void TriggerAttack(CActor enemy)
+        {
+            if (enemy.IsStunned) { return; }
+            if (Hero.isDead) { return; }
+            enemy.State = 5;
+            enemy.IF = 0;
+            enemy.IsStunned = true;
+            enemy.StunTimer = enemy.RecoveryDuration;
+        }
+        void TriggerHurt(CActor enemy)
+        {
+            if (enemy.isDead || enemy.IsStunned) { return; }
+
+            enemy.State = 3;
+            enemy.IF = 0;
+            enemy.IsStunned = true;
+            enemy.StunTimer = enemy.HurtStunDuration;
+        }
         void ManageActorAnimation(CActor Actor)
         {
+
+            if (Actor.Direction)
+            {
+                idle = Actor.IdleL;
+                walk = Actor.WalkL;
+                hurt = Actor.HurtL;
+                dead = Actor.DeadL;
+                attack1 = Actor.Attack1L;
+                attack2 = Actor.Attack2L;
+                attack3 = Actor.Attack3L;
+                climb = Actor.ClimbL;
+            }
+            else
+            {
+                idle = Actor.IdleR;
+                walk = Actor.WalkR;
+                hurt = Actor.HurtR;
+                dead = Actor.DeadR;
+                attack1 = Actor.Attack1R;
+                attack2 = Actor.Attack2R;
+                attack3 = Actor.Attack3R;
+                climb = Actor.ClimbR;
+            }
+
             if (Actor.State == 0)
             {
                 Actor.IF++;
-                if (Actor.IF >= Actor.Idle.Count)
+                if (Actor.IF >= idle.Count)
                 {
                     Actor.IF = 0;
                 }
@@ -320,7 +595,7 @@ namespace key_of_shadows
             else if (Actor.State == 1)
             {
                 Actor.IF++;
-                if (Actor.IF >= Actor.Walk.Count)
+                if (Actor.IF >= walk.Count)
                 {
                     Actor.IF = 0;
                 }
@@ -340,7 +615,7 @@ namespace key_of_shadows
             else if (Actor.State == 3)
             {
                 Actor.IF++;
-                if (Actor.IF >= Actor.Hurt.Count)
+                if (Actor.IF >= hurt.Count)
                 {
                     Actor.IF = 0;
                     Actor.State = 0;
@@ -349,15 +624,15 @@ namespace key_of_shadows
             else if (Actor.State == 4)
             {
                 Actor.IF++;
-                if (Actor.IF >= Actor.Dead.Count)
+                if (Actor.IF >= dead.Count)
                 {
-                    Actor.IF = Actor.Dead.Count - 1;
+                    Actor.IF = dead.Count - 1;
                 }
             }
             else if (Actor.State == 5)
             {
                 Actor.IF++;
-                if (Actor.IF >= Actor.Attack1.Count)
+                if (Actor.IF >= attack1.Count)
                 {
                     Actor.IF = 0;
                     Actor.State = 0;
@@ -367,24 +642,30 @@ namespace key_of_shadows
             else if (Actor.State == 6)
             {
                 Actor.IF++;
-                if (Actor.IF >= Actor.Attack2.Count)
+                if (Actor.IF >= attack2.Count)
                 {
-                    Ball pnn = new Ball();
-                    pnn.X = Hero.X + Hero.Attack2[Hero.Attack2.Count - 1].Width;
-                    pnn.Y = Hero.Y;
-                    for (int i = 1; i <= 12; i++)
+                    if (Actor == Hero)
                     {
-                        pnn.Charge.Add(new Bitmap("hero\\charge\\herocharge" + i + ".png"));
+                        Ball pnn = new Ball();
+                        pnn.X = Hero.X + BStartX + attack2[attack2.Count - 1].Width;
+                        pnn.Y = Hero.Y;
+                        pnn.W = 1;
+                        pnn.Floor = Actor.Floor;
+                        for (int i = 1; i <= 12; i++)
+                        {
+                            pnn.Charge.Add(new Bitmap("hero\\charge\\herocharge" + i + ".png"));
+                        }
+                        FireBall.Add(pnn);
                     }
-                    FireBall.Add(pnn);
                     Actor.IF = 0;
                     Actor.State = 0;
+                    Actor.GotHit = false;
                 }
             }
             else if (Actor.State == 7)
             {
                 Actor.IF++;
-                if (Actor.IF >= Actor.Attack3.Count - 3)
+                if (Actor.IF >= attack3.Count - 3)
                 {
                     if (LaserOn)
                     {
@@ -399,7 +680,7 @@ namespace key_of_shadows
             }
             else if (Actor.State == 9)
             {
-                if (Actor.IF >= Actor.Climb.Count)
+                if (Actor.IF >= climb.Count)
                 {
                     Actor.IF = 0;
                 }
@@ -413,57 +694,157 @@ namespace key_of_shadows
                 for (int i = 0; i < FireBall.Count; i++)
                 {
                     Ball ptrv = FireBall[i];
-                    ptrv.X += 10;
-                    ptrv.IF++;
-                    if ((ptrv.X + ptrv.Charge[ptrv.IF].Width) > Fa7l.X - 30 && Fa7l.X > ptrv.X)
+                    if (ptrv.W == 1)
                     {
-                        ptrv.IF = 6;
-                    }
-                    else if (ptrv.IF >= ptrv.Charge.Count - 7)
-                    {
-                        ptrv.IF = 0;
-                    }
+                        ptrv.X += 10;
+                        ptrv.IF++;
+                        if (ptrv.IF >= 5)
+                        {
+                            ptrv.IF = 0;
+                        }
+                        bool hit = false;
 
-                    if (ptrv.W == 20 || ptrv.IF == ptrv.Charge.Count)
-                    {
-                        FireBall.RemoveAt(i);
-                        i--;
+                        if (!Fa7l.isDead && ptrv.X + ptrv.Charge[ptrv.IF].Width >= Fa7l.X - BStartX && ptrv.X < Fa7l.X - BStartX + 50 && ptrv.Floor == Fa7l.Floor)
+                        {
+                            Fa7l.Health -= 5;
+                            Fa7l.GotHit = true;
+                            CheckDead(Fa7l);
+                            hit = true;
+                        }
+                        if (!Skewar.isDead && ptrv.X + ptrv.Charge[ptrv.IF].Width >= Skewar.X - BStartX && ptrv.X < Skewar.X - BStartX + 50 && ptrv.Floor == Skewar.Floor)
+                        {
+                            Skewar.Health -= 5;
+                            Skewar.GotHit = true;
+                            CheckDead(Skewar);
+                            hit = true;
+                        }
+                        if (!Skespe.isDead && ptrv.X + ptrv.Charge[ptrv.IF].Width >= Skespe.X - BStartX && ptrv.X < Skespe.X - BStartX + 50 && ptrv.Floor == Skespe.Floor)
+                        {
+                            Skespe.Health -= 5;
+                            Skespe.GotHit = true;
+                            CheckDead(Skespe);
+                            hit = true;
+                        }
+                        if (ptrv.X > ClientSize.Width)
+                        {
+                            hit = true;
+                        }
+                        if (hit)
+                        {
+                            ptrv.W = 2;
+                            ptrv.IF = 5;
+                        }
                     }
-                    ptrv.W++;
+                    else if (ptrv.W == 2)
+                    {
+                        ptrv.IF++;
+                        if (ptrv.IF >= ptrv.Charge.Count)
+                        {
+                            FireBall.RemoveAt(i);
+                            i--;
+                        }
+                    }
                 }
             }
         }
-
-        void CheckEnemyHit()
+        void CheckHeroHit(CActor enemy)
         {
-            if (Hero.State == 5 && (Hero.X + Hero.Attack1[Hero.IF].Width >= Fa7l.X - BStartX - 30) && Fa7l.X - BStartX > Hero.X && isAttack && !Fa7l.isDead)
+
+
+            if (enemy.State != 5 || enemy.isDead)
             {
-                if (!Fa7l.GotHit)
+                Hero.GotHit = false;
+                return;
+            }
+            int enemyScreenX = enemy.X - BStartX;
+            if (enemy.State != 5 || enemy.isDead)
+            {
+                Hero.GotHit = false;
+                return;
+            }
+
+            if (!Hero.GotHit)
+            {
+                if (Hero.X > enemyScreenX && enemyScreenX + attack1[enemy.IF].Width >= Hero.X - 40)
                 {
-                    Fa7l.Health -= 10;
-                    Fa7l.IF = 0;
-                    Fa7l.GotHit = true;
-                    CheckDead(Fa7l);
+                    Hero.Health -= 10;
+                    Hero.GotHit = true;
+                    CheckDead(Hero);
+                }
+                else if (Hero.X < enemyScreenX && Hero.X + idle[0].Width >= enemyScreenX - 30)
+                {
+                    Hero.Health -= 10;
+                    Hero.GotHit = true;
+                    CheckDead(Hero);
                 }
             }
-            else if (Hero.State == 7 && (Hero.X + Hero.Attack3[Hero.IF].Width >= Fa7l.X - BStartX - 30) && Fa7l.X - BStartX > Hero.X && isAttack && !Fa7l.isDead)
+        }
+        void CheckEnemyHit(CActor enemy)
+        {
+            List<Bitmap> attack1Hero;
+            List<Bitmap> attack3Hero;
+            if (Hero.Direction)
             {
-
-                Fa7l.Health -= 1;
-                Fa7l.IF = 0;
-                Fa7l.GotHit = true;
-                CheckDead(Fa7l);
+                attack1Hero = Hero.Attack1L;
+                attack3Hero = Hero.Attack3L;
+            }
+            else
+            {
+                attack1Hero = Hero.Attack1R;
+                attack3Hero = Hero.Attack3R;
+            }
+            if (enemy.Direction)
+            {
+                attack1 = enemy.Attack1L;
+            }
+            else
+            {
+                attack1 = enemy.Attack1R;
+            }
+            if (Hero.Direction)
+            {
+                idle = Hero.IdleL;
+            }
+            else
+            {
+                idle = Hero.IdleR;
+            }
+            if (enemy.isDead) { return; }
+            if (Hero.State == 5 && (Hero.X + attack1Hero[Hero.IF].Width >= enemy.X - BStartX - 30) && enemy.X - BStartX > Hero.X && isAttack)
+            {
+                if (!enemy.GotHit)
+                {
+                    enemy.Health -= 10;
+                    enemy.IF = 0;
+                    enemy.GotHit = true;
+                    CheckDead(enemy);
+                }
+            }
+            else if (Hero.State == 7 && (Hero.X + attack3Hero[Hero.IF].Width >= enemy.X - BStartX - 30) && enemy.X - BStartX > Hero.X && isAttack)
+            {
+                enemy.Health -= 1;
+                enemy.IF = 0;
+                enemy.GotHit = true;
+                CheckDead(enemy);
             }
             if (FireBall.Count > 0)
             {
                 for (int i = 0; i < FireBall.Count; i++)
                 {
-                    if ((FireBall[i].X + FireBall[i].Charge[FireBall[i].IF].Width) > Fa7l.X - BStartX && Fa7l.X - BStartX - 30 > FireBall[i].X && !Fa7l.isDead)
+                    Ball ptrv = FireBall[i];
+                    if (ptrv.W == 1 && ptrv.Floor == enemy.Floor)
                     {
-                        Fa7l.Health -= 5;
-                        Fa7l.IF = 0;
-                        Fa7l.GotHit = true;
-                        CheckDead(Fa7l);
+                        int FireBallWorldX = ptrv.X + BStartX;
+                        int enemyWidth = 50;
+                        if (FireBallWorldX + ptrv.Charge[ptrv.IF].Width >= enemy.X && FireBallWorldX < enemy.X + enemyWidth)
+                        {
+                            enemy.Health -= 5;
+                            enemy.IF = 0;
+                            enemy.GotHit = true;
+                            CheckDead(enemy);
+                            ptrv.W = 2;
+                            ptrv.IF = 5;
+                        }
                     }
                 }
             }
@@ -471,17 +852,17 @@ namespace key_of_shadows
         }
         void CheckDead(CActor enemy)
         {
-            if (enemy.Health > 0)
-            {
-                enemy.State = 3;
-            }
-            else if (enemy.Health < 0)
+            if (enemy.Health <= 0)
             {
                 enemy.State = 4;
                 enemy.IF = 0;
                 enemy.isDead = true;
+                enemy.IsStunned = false;
             }
-
+            else
+            {
+                TriggerHurt(enemy);
+            }
         }
         void Jump()
         {
@@ -514,11 +895,16 @@ namespace key_of_shadows
         {
             for (int i = 0; i < Ladder.Count; i++)
             {
-                if (Hero.X > Ladder[i].X && Hero.X + Hero.Idle[0].Width < Ladder[i].X + Ladder[i].Img.Width && Hero.Y + Hero.Idle[0].Height > Ladder[i].Y - 30 && Hero.Y + Hero.Idle[0].Height < Ladder[i].Y + Ladder[i].Img.Height && Direction == "u" && Hero.State != 1 && Hero.State != 2)
+                if (Hero.X > Ladder[i].X && Hero.X + Hero.IdleR[0].Width < Ladder[i].X + Ladder[i].Img.Width && Hero.Y + Hero.IdleR[0].Height > Ladder[i].Y - 30 && Hero.Y + Hero.IdleR[0].Height < Ladder[i].Y + Ladder[i].Img.Height && Direction == "u" && Hero.State != 1 && Hero.State != 2)
                 {
-                    Hero.X = Ladder[i].X + Ladder[i].Img.Width / 2 - Hero.Idle[0].Width / 2;
+                    Hero.X = Ladder[i].X + Ladder[i].Img.Width / 2 - Hero.IdleR[0].Width / 2;
                     if (BStartY + ClientSize.Height + Speed < Background.Img.Height)
                     {
+                        if (!isClimbing)
+                        {
+                            Hero.Floor++;
+                            isClimbing = true;
+                        }
                         Hero.Y -= Speed;
                     }
                     else
@@ -527,15 +913,20 @@ namespace key_of_shadows
                     }
                     if (Hero.Y < Ladder[i].Y)
                     {
-                        Hero.Y = Floors[Ladder[i].Floors].Y - Floors[Ladder[i].Floors].H - Hero.Idle[0].Height;
+                        Hero.Y = Floors[Ladder[i].Floor].Y - Floors[Ladder[i].Floor].H - Hero.IdleR[0].Height;
                         Hero.State = 0;
+                        if (isClimbing)
+                        {
+                            Hero.Floor--;
+                            isClimbing = false;
+                        }
                         return false;
                     }
                     return true;
                 }
-                else if (Hero.X > Ladder[i].X && Hero.X + Hero.Idle[0].Width < Ladder[i].X + Ladder[i].Img.Width && Hero.Y + Hero.Idle[0].Height > Ladder[i].Y - 100 && Hero.Y + Hero.Idle[0].Height < Ladder[i].Y + Ladder[i].Img.Height && Direction == "d" && Hero.State != 1 && Hero.State != 2)
+                else if (Hero.X > Ladder[i].X && Hero.X + Hero.IdleR[0].Width < Ladder[i].X + Ladder[i].Img.Width && Hero.Y + Hero.IdleR[0].Height > Ladder[i].Y - 100 && Hero.Y + Hero.IdleR[0].Height < Ladder[i].Y + Ladder[i].Img.Height && Direction == "d" && Hero.State != 1 && Hero.State != 2)
                 {
-                    Hero.X = Ladder[i].X + Ladder[i].Img.Width / 2 - Hero.Idle[0].Width / 2;
+                    Hero.X = Ladder[i].X + Ladder[i].Img.Width / 2 - Hero.IdleR[0].Width / 2;
                     if (Speed < Background.Img.Height - ClientSize.Height)
                     {
                         Hero.Y += Speed;
@@ -544,9 +935,9 @@ namespace key_of_shadows
                     {
                         Hero.Y += Speed;
                     }
-                    if (Hero.Y + Hero.Idle[0].Height > Ladder[i].Y + Ladder[i].Img.Height - 70)
+                    if (Hero.Y + Hero.IdleR[0].Height > Ladder[i].Y + Ladder[i].Img.Height - 70)
                     {
-                        Hero.Y = Floors[Ladder[i].Floors + 1].Y - Floors[Ladder[i].Floors + 1].H - Hero.Idle[0].Height;
+                        Hero.Y = Floors[Ladder[i].Floor + 1].Y - Floors[Ladder[i].Floor + 1].H - Hero.IdleR[0].Height;
                         Hero.State = 0;
                         return false;
                     }
@@ -566,8 +957,6 @@ namespace key_of_shadows
         }
         void DrawScene(Graphics g2)
         {
-            BStartX = Hero.X - ClientSize.Width / 2;
-            BStartY = Hero.Y - ClientSize.Height / 2;
             g2.Clear(BackColor);
             CheckBorders();
             DrawBackground(g2);
@@ -621,85 +1010,198 @@ namespace key_of_shadows
         {
             int frameToDraw = Hero.IF;
 
-            if (Hero.State == 0 && Hero.Idle.Count > frameToDraw)
+
+
+            if (Hero.Direction)
             {
-                g.DrawImage(Hero.Idle[frameToDraw], Hero.X - BStartX, Hero.Y - BStartY);
+                idle = Hero.IdleL;
+                walk = Hero.WalkL;
+                jump = Hero.JumpL;
+                attack1 = Hero.Attack1L;
+                attack2 = Hero.Attack2L;
+                attack3 = Hero.Attack3L;
+                climb = Hero.ClimbL;
+            }
+            else
+            {
+                idle = Hero.IdleR;
+                walk = Hero.WalkR;
+                jump = Hero.JumpR;
+                attack1 = Hero.Attack1R;
+                attack2 = Hero.Attack2R;
+                attack3 = Hero.Attack3R;
+                climb = Hero.ClimbR;
+            }
+
+            if (Hero.State == 0 && idle.Count > frameToDraw)
+            {
+                g.DrawImage(idle[frameToDraw], Hero.X - BStartX, Hero.Y - BStartY);
             }
             else if (Hero.State == 1)
             {
-                g.DrawImage(Hero.Walk[frameToDraw], Hero.X - BStartX, Hero.Y - BStartY);
+                g.DrawImage(walk[frameToDraw], Hero.X - BStartX, Hero.Y - BStartY);
             }
             else if (Hero.State == 2)
             {
-                g.DrawImage(Hero.Jump[frameToDraw], Hero.X - BStartX, Hero.Y - BStartY);
+                g.DrawImage(jump[frameToDraw], Hero.X - BStartX, Hero.Y - BStartY);
             }
             else if (Hero.State == 5)
             {
-                g.DrawImage(Hero.Attack1[frameToDraw], Hero.X - BStartX, Hero.Y - BStartY);
+                g.DrawImage(attack1[frameToDraw], Hero.X - BStartX, Hero.Y - BStartY);
             }
             else if (Hero.State == 6)
             {
-                g.DrawImage(Hero.Attack2[frameToDraw], Hero.X - BStartX, Hero.Y - BStartY);
+                g.DrawImage(attack2[frameToDraw], Hero.X - BStartX, Hero.Y - BStartY);
             }
             else if (Hero.State == 7)
             {
-                g.DrawImage(Hero.Attack3[frameToDraw], Hero.X - BStartX, Hero.Y - BStartY);
+                g.DrawImage(attack3[frameToDraw], Hero.X - BStartX, Hero.Y - BStartY);
             }
             else if (Hero.State == 9)
             {
-                g.DrawImage(Hero.Climb[frameToDraw], Hero.X - BStartX, Hero.Y - BStartY);
+                g.DrawImage(climb[frameToDraw], Hero.X - BStartX, Hero.Y - BStartY);
             }
         }
         void DrawFa7l(Graphics g)
         {
+
+
+            if (Fa7l.Direction)
+            {
+                idle = Fa7l.IdleL;
+                walk = Fa7l.WalkL;
+                hurt = Fa7l.HurtL;
+                dead = Fa7l.DeadL;
+                attack1 = Fa7l.Attack1L;
+            }
+            else
+            {
+                idle = Fa7l.IdleR;
+                walk = Fa7l.WalkR;
+                hurt = Fa7l.HurtR;
+                dead = Fa7l.DeadR;
+                attack1 = Fa7l.Attack1R;
+            }
+
             int fa7lDrawX = Fa7l.X - BStartX;
             if (Fa7l.IF < Fa7l.Xadd.Length)
             {
                 fa7lDrawX += Fa7l.Xadd[Fa7l.IF];
             }
-            if (Fa7l.State == 0) { g.DrawImage(Fa7l.Idle[Fa7l.IF], fa7lDrawX, Fa7l.Y - BStartY); }
-            else if (Fa7l.State == 1) { g.DrawImage(Fa7l.Walk[Fa7l.IF], Fa7l.X - BStartX, Fa7l.Y - BStartY); }
-            else if (Fa7l.State == 3) { g.DrawImage(Fa7l.Hurt[Fa7l.IF], Fa7l.X - BStartX, Fa7l.Y - BStartY); }
-            else if (Fa7l.State == 4) { g.DrawImage(Fa7l.Dead[Fa7l.IF], Fa7l.X - BStartX, Fa7l.Y - BStartY); }
-            else if (Fa7l.State == 5) { g.DrawImage(Fa7l.Attack1[Fa7l.IF], Fa7l.X - BStartX, Fa7l.Y - BStartY); }
-            else { g.DrawImage(Fa7l.Idle[0], Fa7l.X, Fa7l.Y); }
+            if (Fa7l.State == 0) { g.DrawImage(idle[Fa7l.IF], fa7lDrawX, Fa7l.Y - BStartY); }
+            else if (Fa7l.State == 1) { g.DrawImage(walk[Fa7l.IF], Fa7l.X - BStartX, Fa7l.Y - BStartY); }
+            else if (Fa7l.State == 3) { g.DrawImage(hurt[Fa7l.IF], Fa7l.X - BStartX, Fa7l.Y - BStartY); }
+            else if (Fa7l.State == 4) { g.DrawImage(dead[Fa7l.IF], Fa7l.X - BStartX, Fa7l.Y - BStartY); }
+            else if (Fa7l.State == 5) { g.DrawImage(attack1[Fa7l.IF], Fa7l.X - BStartX, Fa7l.Y - BStartY); }
+            else { g.DrawImage(idle[0], Fa7l.X, Fa7l.Y); }
         }
 
         void DrawSkearch(Graphics g)
         {
-            if (Skearch.State == 0) { g.DrawImage(Skearch.Idle[Skearch.IF], Skearch.X - BStartX, Skearch.Y - BStartY); }
-            else if (Skearch.State == 1) { g.DrawImage(Skearch.Walk[Skearch.IF], Skearch.X - BStartX, Skearch.Y - BStartY); }
-            else if (Skearch.State == 3) { g.DrawImage(Skearch.Hurt[Skearch.IF], Skearch.X - BStartX, Skearch.Y - BStartY); }
-            else if (Skearch.State == 4) { g.DrawImage(Skearch.Dead[Skearch.IF], Skearch.X - BStartX, Skearch.Y - BStartY); }
-            else if (Skearch.State == 5) { g.DrawImage(Skearch.Attack1[Skearch.IF], Skearch.X - BStartX, Skearch.Y - BStartY); }
-            else { g.DrawImage(Skearch.Idle[0], Skearch.X, Skearch.Y); }
+
+
+            if (Skearch.Direction)
+            {
+                idle = Skearch.IdleL;
+                walk = Skearch.WalkL;
+                hurt = Skearch.HurtL;
+                dead = Skearch.DeadL;
+                attack1 = Skearch.Attack1L;
+            }
+            else
+            {
+                idle = Skearch.IdleR;
+                walk = Skearch.WalkR;
+                hurt = Skearch.HurtR;
+                dead = Skearch.DeadR;
+                attack1 = Skearch.Attack1R;
+            }
+
+            if (Skearch.State == 0) { g.DrawImage(idle[Skearch.IF], Skearch.X - BStartX, Skearch.Y - BStartY); }
+            else if (Skearch.State == 1) { g.DrawImage(walk[Skearch.IF], Skearch.X - BStartX, Skearch.Y - BStartY); }
+            else if (Skearch.State == 3) { g.DrawImage(hurt[Skearch.IF], Skearch.X - BStartX, Skearch.Y - BStartY); }
+            else if (Skearch.State == 4) { g.DrawImage(dead[Skearch.IF], Skearch.X - BStartX, Skearch.Y - BStartY); }
+            else if (Skearch.State == 5) { g.DrawImage(attack1[Skearch.IF], Skearch.X - BStartX, Skearch.Y - BStartY); }
+            else { g.DrawImage(idle[0], Skearch.X, Skearch.Y); }
         }
         void DrawSkewar(Graphics g)
         {
-            if (Skewar.State == 0) { g.DrawImage(Skewar.Idle[Skewar.IF], Skewar.X - BStartX, Skewar.Y - BStartY); }
-            else if (Skewar.State == 1) { g.DrawImage(Skewar.Walk[Skewar.IF], Skewar.X - BStartX, Skewar.Y - BStartY); }
-            else if (Skewar.State == 3) { g.DrawImage(Skewar.Hurt[Skewar.IF], Skewar.X - BStartX, Skewar.Y - BStartY); }
-            else if (Skewar.State == 4) { g.DrawImage(Skewar.Dead[Skewar.IF], Skewar.X - BStartX, Skewar.Y - BStartY); }
-            else if (Skewar.State == 5) { g.DrawImage(Skewar.Attack1[Skewar.IF], Skewar.X - BStartX, Skewar.Y - BStartY); }
-            else { g.DrawImage(Skewar.Idle[0], Skewar.X, Skewar.Y); }
+            if (Skewar.Direction)
+            {
+                idle = Skewar.IdleL;
+                walk = Skewar.WalkL;
+                hurt = Skewar.HurtL;
+                dead = Skewar.DeadL;
+                attack1 = Skewar.Attack1L;
+            }
+            else
+            {
+                idle = Skewar.IdleR;
+                walk = Skewar.WalkR;
+                hurt = Skewar.HurtR;
+                dead = Skewar.DeadR;
+                attack1 = Skewar.Attack1R;
+            }
+
+            if (Skewar.State == 0) { g.DrawImage(idle[Skewar.IF], Skewar.X - BStartX, Skewar.Y - BStartY); }
+            else if (Skewar.State == 1) { g.DrawImage(walk[Skewar.IF], Skewar.X - BStartX, Skewar.Y - BStartY); }
+            else if (Skewar.State == 3) { g.DrawImage(hurt[Skewar.IF], Skewar.X - BStartX, Skewar.Y - BStartY); }
+            else if (Skewar.State == 4) { g.DrawImage(dead[Skewar.IF], Skewar.X - BStartX, Skewar.Y - BStartY); }
+            else if (Skewar.State == 5) { g.DrawImage(attack1[Skewar.IF], Skewar.X - BStartX, Skewar.Y - BStartY); }
+            else { g.DrawImage(idle[0], Skewar.X, Skewar.Y); }
         }
         void DrawSkespe(Graphics g)
         {
-            if (Skespe.State == 0) { g.DrawImage(Skespe.Idle[Skespe.IF], Skespe.X - BStartX, Skespe.Y - BStartY); }
-            else if (Skespe.State == 1) { g.DrawImage(Skespe.Walk[Skespe.IF], Skespe.X - BStartX, Skespe.Y - BStartY); }
-            else if (Skespe.State == 3) { g.DrawImage(Skespe.Hurt[Skespe.IF], Skespe.X - BStartX, Skespe.Y - BStartY); }
-            else if (Skespe.State == 4) { g.DrawImage(Skespe.Dead[Skespe.IF], Skespe.X - BStartX, Skespe.Y - BStartY); }
-            else if (Skespe.State == 5) { g.DrawImage(Skespe.Attack1[Skespe.IF], Skespe.X - BStartX, Skespe.Y - BStartY); }
-            else { g.DrawImage(Skespe.Idle[0], Skespe.X, Skespe.Y); }
+
+            if (Skespe.Direction)
+            {
+                idle = Skespe.IdleL;
+                walk = Skespe.WalkL;
+                hurt = Skespe.HurtL;
+                dead = Skespe.DeadL;
+                attack1 = Skespe.Attack1L;
+            }
+            else
+            {
+                idle = Skespe.IdleR;
+                walk = Skespe.WalkR;
+                hurt = Skespe.HurtR;
+                dead = Skespe.DeadR;
+                attack1 = Skespe.Attack1R;
+            }
+
+            if (Skespe.State == 0) { g.DrawImage(idle[Skespe.IF], Skespe.X - BStartX, Skespe.Y - BStartY); }
+            else if (Skespe.State == 1) { g.DrawImage(walk[Skespe.IF], Skespe.X - BStartX, Skespe.Y - BStartY); }
+            else if (Skespe.State == 3) { g.DrawImage(hurt[Skespe.IF], Skespe.X - BStartX, Skespe.Y - BStartY); }
+            else if (Skespe.State == 4) { g.DrawImage(dead[Skespe.IF], Skespe.X - BStartX, Skespe.Y - BStartY); }
+            else if (Skespe.State == 5) { g.DrawImage(attack1[Skespe.IF], Skespe.X - BStartX, Skespe.Y - BStartY); }
+            else { g.DrawImage(idle[0], Skespe.X, Skespe.Y); }
         }
         void DrawDemon(Graphics g)
         {
-            if (Demon.State == 0) { g.DrawImage(Demon.Idle[Demon.IF], Demon.X - BStartX, Demon.Y - BStartY); }
-            else if (Demon.State == 1) { g.DrawImage(Demon.Walk[Demon.IF], Demon.X - BStartX, Demon.Y - BStartY); }
-            else if (Demon.State == 3) { g.DrawImage(Demon.Hurt[Demon.IF], Demon.X - BStartX, Demon.Y - BStartY); }
-            else if (Demon.State == 4) { g.DrawImage(Demon.Dead[Demon.IF], Demon.X - BStartX, Demon.Y - BStartY); }
-            else if (Demon.State == 5) { g.DrawImage(Demon.Attack1[Demon.IF], Demon.X - BStartX, Demon.Y - BStartY); }
-            else { g.DrawImage(Demon.Idle[0], Demon.X, Demon.Y); }
+            if (Demon.Direction)
+            {
+                idle = Demon.IdleL;
+                walk = Demon.WalkL;
+                hurt = Demon.HurtL;
+                dead = Demon.DeadL;
+                attack1 = Demon.Attack1L;
+            }
+            else
+            {
+                idle = Demon.IdleR;
+                walk = Demon.WalkR;
+                hurt = Demon.HurtR;
+                dead = Demon.DeadR;
+                attack1 = Demon.Attack1R;
+            }
+
+            if (Demon.State == 0) { g.DrawImage(idle[Demon.IF], Demon.X - BStartX, Demon.Y - BStartY); }
+            else if (Demon.State == 1) { g.DrawImage(walk[Demon.IF], Demon.X - BStartX, Demon.Y - BStartY); }
+            else if (Demon.State == 3) { g.DrawImage(hurt[Demon.IF], Demon.X - BStartX, Demon.Y - BStartY); }
+            else if (Demon.State == 4) { g.DrawImage(dead[Demon.IF], Demon.X - BStartX, Demon.Y - BStartY); }
+            else if (Demon.State == 5) { g.DrawImage(attack1[Demon.IF], Demon.X - BStartX, Demon.Y - BStartY); }
+            else { g.DrawImage(idle[0], Demon.X, Demon.Y); }
         }
 
         void DrawFireBall(Graphics g)
@@ -763,49 +1265,49 @@ namespace key_of_shadows
             pnn.Img = new Bitmap("ladder.png");
             pnn.X = 3780;
             pnn.Y = 470;
-            pnn.Floors = 0;
+            pnn.Floor = 0;
             Ladder.Add(pnn);
 
             pnn = new CActor();
             pnn.Img = new Bitmap("ladder.png");
             pnn.X = 1300;
             pnn.Y = 920;
-            pnn.Floors = 1;
+            pnn.Floor = 1;
             Ladder.Add(pnn);
 
             pnn = new CActor();
             pnn.Img = new Bitmap("ladder.png");
             pnn.X = 2800;
             pnn.Y = 920;
-            pnn.Floors = 1;
+            pnn.Floor = 1;
             Ladder.Add(pnn);
 
             pnn = new CActor();
             pnn.Img = new Bitmap("ladder.png");
             pnn.X = 4015;
             pnn.Y = 1370;
-            pnn.Floors = 2;
+            pnn.Floor = 2;
             Ladder.Add(pnn);
 
             pnn = new CActor();
             pnn.Img = new Bitmap("ladder.png");
             pnn.X = 1345;
             pnn.Y = 1830;
-            pnn.Floors = 3;
+            pnn.Floor = 3;
             Ladder.Add(pnn);
 
             pnn = new CActor();
             pnn.Img = new Bitmap("ladder.png");
             pnn.X = 1860;
             pnn.Y = 1830;
-            pnn.Floors = 3;
+            pnn.Floor = 3;
             Ladder.Add(pnn);
 
             pnn = new CActor();
             pnn.Img = new Bitmap("ladder.png");
             pnn.X = 2660;
             pnn.Y = 1830;
-            pnn.Floors = 3;
+            pnn.Floor = 3;
             Ladder.Add(pnn);
 
         }
@@ -814,112 +1316,296 @@ namespace key_of_shadows
         {
             for (int i = 1; i <= 14; i++)
             {
-                if (i <= 7) { Hero.Idle.Add(new Bitmap("hero\\idle\\heroidle" + i + ".png")); }
-                if (i <= 8) { Hero.Walk.Add(new Bitmap("hero\\walk\\herorun" + i + ".png")); }
-                if (i <= 4) { Hero.Attack1.Add(new Bitmap("hero\\attack1\\heromeleeattack" + i + ".png")); }
-                if (i <= 8) { Hero.Attack2.Add(new Bitmap("hero\\attack2\\heroattackFireBall" + i + ".png")); }
-                { Hero.Attack3.Add(new Bitmap("hero\\attack3\\heroflameattack" + i + ".png")); }
-                if (i <= 9) { Hero.Jump.Add(new Bitmap("hero\\jump\\herojump" + i + ".png")); }
-                if (i <= 6) { Hero.Dead.Add(new Bitmap("hero\\dead\\herodead" + i + ".png")); }
-                if (i <= 3) { Hero.Hurt.Add(new Bitmap("hero\\hurt\\herohurt" + i + ".png")); }
-                if (i <= 2) { Hero.Climb.Add(new Bitmap("hero\\climb\\c" + i + ".png")); }
+                if (i <= 7)
+                {
+                    Hero.IdleR.Add(new Bitmap("hero\\heroR\\idle\\heroidle" + i + ".png"));
+                    Hero.IdleL.Add(new Bitmap("hero\\heroL\\idle\\heroidle" + i + ".png"));
+                }
+
+                if (i <= 8)
+                {
+                    Hero.WalkR.Add(new Bitmap("hero\\heroR\\walk\\herorun" + i + ".png"));
+                    Hero.WalkL.Add(new Bitmap("hero\\heroL\\walk\\herorun" + i + ".png"));
+                }
+
+                if (i <= 4)
+                {
+                    Hero.Attack1R.Add(new Bitmap("hero\\heroR\\attack1\\heromeleeattack" + i + ".png"));
+                    Hero.Attack1L.Add(new Bitmap("hero\\heroL\\attack1\\heromeleeattack" + i + ".png"));
+                }
+
+                if (i <= 8)
+                {
+                    Hero.Attack2R.Add(new Bitmap("hero\\heroR\\attack2\\heroattackFireBall" + i + ".png"));
+                    Hero.Attack2L.Add(new Bitmap("hero\\heroL\\attack2\\heroattackFireBall" + i + ".png"));
+                }
+
+                Hero.Attack3R.Add(new Bitmap("hero\\heroR\\attack3\\heroflameattack" + i + ".png"));
+                Hero.Attack3L.Add(new Bitmap("hero\\heroL\\attack3\\heroflameattack" + i + ".png"));
+
+                if (i <= 9)
+                {
+                    Hero.JumpR.Add(new Bitmap("hero\\heroR\\jump\\herojump" + i + ".png"));
+                    Hero.JumpL.Add(new Bitmap("hero\\heroL\\jump\\herojump" + i + ".png"));
+                }
+
+                if (i <= 6)
+                {
+                    Hero.DeadR.Add(new Bitmap("hero\\heroR\\dead\\herodead" + i + ".png"));
+                    Hero.DeadL.Add(new Bitmap("hero\\heroL\\dead\\herodead" + i + ".png"));
+                }
+
+                if (i <= 3)
+                {
+                    Hero.HurtR.Add(new Bitmap("hero\\heroR\\hurt\\herohurt" + i + ".png"));
+                    Hero.HurtL.Add(new Bitmap("hero\\heroL\\hurt\\herohurt" + i + ".png"));
+                }
+
+                if (i <= 2)
+                {
+                    Hero.ClimbR.Add(new Bitmap("hero\\heroR\\climb\\c" + i + ".png"));
+                    Hero.ClimbL.Add(new Bitmap("hero\\heroL\\climb\\c" + i + ".png"));
+                }
             }
-            Hero.X = ClientSize.Width / 2 - Hero.Idle[0].Width / 2;
-            Hero.Y = Floors[Floors.Count - 1].Y - Floors[Floors.Count - 1].H - Hero.Idle[0].Height;
+
+            Hero.X = ClientSize.Width / 2 - Hero.IdleR[0].Width / 2;
+            Hero.Y = Floors[Floors.Count - 1].Y - Floors[Floors.Count - 1].H - Hero.IdleR[0].Height;
             Hero.State = 0;
+            Hero.Health = 100;
+            Hero.HurtStunDuration = 8;
+            Hero.Floor = 0;
         }
+
         void CreateFa7l()
         {
             for (int i = 1; i <= 12; i++)
             {
-                if (i <= 5) { Fa7l.Attack1.Add(new Bitmap("fa7l\\attack\\attackfa7l" + i + ".png")); }
-                if (i <= 5) { Fa7l.Dead.Add(new Bitmap("fa7l\\dead\\deadfa7l" + i + ".png")); }
-                if (i <= 3) { Fa7l.Hurt.Add(new Bitmap("fa7l\\hurt\\hurtfa7l" + i + ".png")); }
-                if (i <= 10) { Fa7l.Idle.Add(new Bitmap("fa7l\\idle\\idlefa7l" + i + ".png")); }
-                Fa7l.Walk.Add(new Bitmap("fa7l\\walk\\walkfa7l" + i + ".png"));
+                if (i <= 5)
+                {
+                    Fa7l.Attack1R.Add(new Bitmap("fa7l\\fa7lR\\attack\\attackfa7l" + i + ".png"));
+                    Fa7l.Attack1L.Add(new Bitmap("fa7l\\fa7lL\\attack\\attackfa7l" + i + ".png"));
+
+                    Fa7l.DeadR.Add(new Bitmap("fa7l\\fa7lR\\dead\\deadfa7l" + i + ".png"));
+                    Fa7l.DeadL.Add(new Bitmap("fa7l\\fa7lL\\dead\\deadfa7l" + i + ".png"));
+                }
+
+                if (i <= 3)
+                {
+                    Fa7l.HurtR.Add(new Bitmap("fa7l\\fa7lR\\hurt\\hurtfa7l" + i + ".png"));
+                    Fa7l.HurtL.Add(new Bitmap("fa7l\\fa7lL\\hurt\\hurtfa7l" + i + ".png"));
+                }
+
+                if (i <= 10)
+                {
+                    Fa7l.IdleR.Add(new Bitmap("fa7l\\fa7lR\\idle\\idlefa7l" + i + ".png"));
+                    Fa7l.IdleL.Add(new Bitmap("fa7l\\fa7lL\\idle\\idlefa7l" + i + ".png"));
+                }
+
+                Fa7l.WalkR.Add(new Bitmap("fa7l\\fa7lR\\walk\\walkfa7l" + i + ".png"));
+                Fa7l.WalkL.Add(new Bitmap("fa7l\\fa7lL\\walk\\walkfa7l" + i + ".png"));
             }
+
             Fa7l.Xadd = new int[] { 0, 0, 0, -8, -21, -27, 0, 0, 0, 0 };
             Fa7l.X = 1150;
-            Fa7l.Y = Floors[4].Y - Floors[4].H - Fa7l.Attack1[2].Height;
+            Fa7l.Y = Floors[4].Y - Floors[4].H - Fa7l.Attack1R[2].Height;
             Fa7l.State = 0;
             Fa7l.Health = 11;
-            // Fa7l.Start = ;
-            // Fa7l.End = ;
+            Fa7l.Startpoint = 900;
+            Fa7l.endpoint = 1400;
+            Fa7l.D = 1;
+            Fa7l.IdleTimer = 20;
+            Fa7l.DetectRange = 400;
+            Fa7l.AttackRange = 80;
+            Fa7l.Speed = 10;
+            Fa7l.RecoveryDuration = 12;
+            Fa7l.HurtStunDuration = 6;
+            Fa7l.Floor = 0;
         }
         void CreateSkearch()
         {
             for (int i = 1; i <= 15; i++)
             {
-                Skearch.Attack1.Add(new Bitmap("skearch\\attack\\skearchattack" + i + ".png"));
-                if (i <= 5) { Skearch.Dead.Add(new Bitmap("skearch\\dead\\skearchdead" + i + ".png")); }
-                if (i <= 2) { Skearch.Hurt.Add(new Bitmap("skearch\\hurt\\skearchhurt" + i + ".png")); }
-                if (i <= 7) { Skearch.Idle.Add(new Bitmap("skearch\\idle\\skearchidle" + i + ".png")); }
-                if (i <= 8) { Skearch.Walk.Add(new Bitmap("skearch\\walk\\skearchwalk" + i + ".png")); }
+                Skearch.Attack1R.Add(new Bitmap("skearch\\skearchR\\attack\\skearchattack" + i + ".png"));
+                Skearch.Attack1L.Add(new Bitmap("skearch\\skearchL\\attack\\skearchattack" + i + ".png"));
+
+                if (i <= 5)
+                {
+                    Skearch.DeadR.Add(new Bitmap("skearch\\skearchR\\dead\\skearchdead" + i + ".png"));
+                    Skearch.DeadL.Add(new Bitmap("skearch\\skearchL\\dead\\skearchdead" + i + ".png"));
+                }
+
+                if (i <= 2)
+                {
+                    Skearch.HurtR.Add(new Bitmap("skearch\\skearchR\\hurt\\skearchhurt" + i + ".png"));
+                    Skearch.HurtL.Add(new Bitmap("skearch\\skearchL\\hurt\\skearchhurt" + i + ".png"));
+                }
+
+                if (i <= 7)
+                {
+                    Skearch.IdleR.Add(new Bitmap("skearch\\skearchR\\idle\\skearchidle" + i + ".png"));
+                    Skearch.IdleL.Add(new Bitmap("skearch\\skearchL\\idle\\skearchidle" + i + ".png"));
+                }
+
+                if (i <= 8)
+                {
+                    Skearch.WalkR.Add(new Bitmap("skearch\\skearchR\\walk\\skearchwalk" + i + ".png"));
+                    Skearch.WalkL.Add(new Bitmap("skearch\\skearchL\\walk\\skearchwalk" + i + ".png"));
+                }
             }
+
             Skearch.X = 1050;
-            Skearch.Y = Floors[4].Y - Floors[4].H - Skearch.Attack1[2].Height;
-            // Skearch.Start = ;
-            // Skearch.End = ;
+            Skearch.Y = Floors[4].Y - Floors[4].H - Skearch.Attack1R[2].Height;
         }
+
         void CreateSkewar()
         {
             for (int i = 1; i <= 7; i++)
             {
-                Skewar.Idle.Add(new Bitmap("skewar\\idle\\skewaridle" + i + ".png"));
-                Skewar.Walk.Add(new Bitmap("skewar\\walk\\skewarwalk" + i + ".png"));
-                if (i <= 5) { Skewar.Attack1.Add(new Bitmap("skewar\\attack\\skewarattack" + i + ".png")); }
-                if (i <= 4) { Skewar.Dead.Add(new Bitmap("skewar\\dead\\skewardead" + i + ".png")); }
-                if (i <= 2) { Skewar.Hurt.Add(new Bitmap("skewar\\hurt\\skewarhurt" + i + ".png")); }
+                Skewar.IdleR.Add(new Bitmap("skewar\\skewarR\\idle\\skewaridle" + i + ".png"));
+                Skewar.IdleL.Add(new Bitmap("skewar\\skewarL\\idle\\skewaridle" + i + ".png"));
+
+                Skewar.WalkR.Add(new Bitmap("skewar\\skewarR\\walk\\skewarwalk" + i + ".png"));
+                Skewar.WalkL.Add(new Bitmap("skewar\\skewarL\\walk\\skewarwalk" + i + ".png"));
+
+                if (i <= 5)
+                {
+                    Skewar.Attack1R.Add(new Bitmap("skewar\\skewarR\\attack\\skewarattack" + i + ".png"));
+                    Skewar.Attack1L.Add(new Bitmap("skewar\\skewarL\\attack\\skewarattack" + i + ".png"));
+                }
+
+                if (i <= 4)
+                {
+                    Skewar.DeadR.Add(new Bitmap("skewar\\skewarR\\dead\\skewardead" + i + ".png"));
+                    Skewar.DeadL.Add(new Bitmap("skewar\\skewarL\\dead\\skewardead" + i + ".png"));
+                }
+
+                if (i <= 2)
+                {
+                    Skewar.HurtR.Add(new Bitmap("skewar\\skewarR\\hurt\\skewarhurt" + i + ".png"));
+                    Skewar.HurtL.Add(new Bitmap("skewar\\skewarL\\hurt\\skewarhurt" + i + ".png"));
+                }
             }
-            Skewar.X = 950;
-            Skewar.Y = Floors[4].Y - Floors[4].H - Skewar.Attack1[2].Height;
-            //  Skewar.Start = ;
-            //  Skewar.End = ;
+
+            Skewar.X = 1300;
+            Skewar.Y = Floors[2].Y - Skewar.IdleR[0].Height - 30;
+            Skewar.State = 0;
+            Skewar.Health = 30;
+            Skewar.Startpoint = 1900;
+            Skewar.endpoint = 2530;
+            Skewar.D = 1;
+            Skewar.IdleTimer = 15;
+            Skewar.DetectRange = 350;
+            Skewar.AttackRange = 70;
+            Skewar.Speed = 12;
+            Skewar.RecoveryDuration = 10;
+            Skewar.HurtStunDuration = 5;
+            Skewar.Floor = 2;
         }
         void CreateSkespe()
         {
             for (int i = 1; i <= 7; i++)
             {
-                Skespe.Idle.Add(new Bitmap("skespe\\idle\\skespeidle" + i + ".png"));
-                Skespe.Walk.Add(new Bitmap("skespe\\walk\\skespewalk" + i + ".png"));
-                if (i <= 6) { Skespe.Walk.Add(new Bitmap("skespe\\run\\skesperun" + i + ".png")); }
+                Skespe.IdleR.Add(new Bitmap("skespe\\skespeR\\idle\\skespeidle" + i + ".png"));
+                Skespe.IdleL.Add(new Bitmap("skespe\\skespeL\\idle\\skespeidle" + i + ".png"));
+
+                Skespe.WalkR.Add(new Bitmap("skespe\\skespeR\\walk\\skespewalk" + i + ".png"));
+                Skespe.WalkL.Add(new Bitmap("skespe\\skespeL\\walk\\skespewalk" + i + ".png"));
+
+                if (i <= 6)
+                {
+                    Skespe.WalkR.Add(new Bitmap("skespe\\skespeR\\run\\skesperun" + i + ".png"));
+                    Skespe.WalkL.Add(new Bitmap("skespe\\skespeL\\run\\skesperun" + i + ".png"));
+                }
+
                 if (i <= 5)
                 {
-                    Skespe.Dead.Add(new Bitmap("skespe\\dead\\skespedead" + i + ".png"));
-                    Skespe.Attack2.Add(new Bitmap("skespe\\attack+run\\skesperunattack" + i + ".png"));
+                    Skespe.DeadR.Add(new Bitmap("skespe\\skespeR\\dead\\skespedead" + i + ".png"));
+                    Skespe.DeadL.Add(new Bitmap("skespe\\skespeL\\dead\\skespedead" + i + ".png"));
+
+                    Skespe.Attack2R.Add(new Bitmap("skespe\\skespeR\\attack+run\\skesperunattack" + i + ".png"));
+                    Skespe.Attack2L.Add(new Bitmap("skespe\\skespeL\\attack+run\\skesperunattack" + i + ".png"));
                 }
+
                 if (i <= 4)
                 {
-                    Skespe.Attack1.Add(new Bitmap("skespe\\attack\\skespeattack" + i + ".png"));
-                    Skespe.Charge.Add(new Bitmap("skespe\\Arrow.png"));
+                    Skespe.Attack1R.Add(new Bitmap("skespe\\skespeR\\attack\\skespeattack" + i + ".png"));
+                    Skespe.Attack1L.Add(new Bitmap("skespe\\skespeL\\attack\\skespeattack" + i + ".png"));
+
+                    Skespe.ChargeR.Add(new Bitmap("skespe\\Arrow.png"));
+                    Skespe.ChargeL.Add(new Bitmap("skespe\\Arrow.png"));
                 }
-                if (i <= 3) { Skespe.Hurt.Add(new Bitmap("skespe\\hurt\\skespehurt" + i + ".png")); }
+
+                if (i <= 3)
+                {
+                    Skespe.HurtR.Add(new Bitmap("skespe\\skespeR\\hurt\\skespehurt" + i + ".png"));
+                    Skespe.HurtL.Add(new Bitmap("skespe\\skespeL\\hurt\\skespehurt" + i + ".png"));
+                }
             }
-            Skespe.X = 1840;
-            Skespe.Y = Floors[3].Y - Floors[3].H - Skespe.Attack1[2].Height;
-            Skespe.Start = 1840;
-            Skespe.End = 3750;
+
+            Skespe.X = 2000;
+            Skespe.Y = Floors[3].Y - Skespe.IdleR[0].Height - 30;
+            Skespe.State = 0;
+            Skespe.Health = 25;
+            Skespe.Startpoint = 1800;
+            Skespe.endpoint = 4000;
+            Skespe.D = 1;
+            Skespe.IdleTimer = 15;
+            Skespe.DetectRange = 500;
+            Skespe.AttackRange = 70;
+            Skespe.Speed = 15;
+            Skespe.RecoveryDuration = 10;
+            Skespe.HurtStunDuration = 5;
+            Skespe.Floor = 1;
         }
+
         void CreateDemon()
         {
             for (int i = 1; i <= 8; i++)
             {
-                if (i <= 8) { Demon.Attack1.Add(new Bitmap("demon\\attack\\demonattack" + i + ".png")); }
-                if (i <= 6) { Demon.Dead.Add(new Bitmap("demon\\dead\\demondead" + i + ".png")); }
-                if (i <= 4) { Demon.Walk.Add(new Bitmap("demon\\fly\\demonfly" + i + ".png")); }
-                if (i <= 4) { Demon.Hurt.Add(new Bitmap("demon\\hurt\\demonhurt" + i + ".png")); }
-                if (i <= 4) { Demon.Idle.Add(new Bitmap("demon\\idle\\demonideal" + i + ".png")); }
+                if (i <= 8)
+                {
+                    Demon.Attack1R.Add(new Bitmap("demon\\demonR\\attack\\demonattack" + i + ".png"));
+                    Demon.Attack1L.Add(new Bitmap("demon\\demonL\\attack\\demonattack" + i + ".png"));
+                }
+
+                if (i <= 6)
+                {
+                    Demon.DeadR.Add(new Bitmap("demon\\demonR\\dead\\demondead" + i + ".png"));
+                    Demon.DeadL.Add(new Bitmap("demon\\demonL\\dead\\demondead" + i + ".png"));
+                }
+
+                if (i <= 4)
+                {
+                    Demon.WalkR.Add(new Bitmap("demon\\demonR\\fly\\demonfly" + i + ".png"));
+                    Demon.WalkL.Add(new Bitmap("demon\\demonL\\fly\\demonfly" + i + ".png"));
+                }
+
+                if (i <= 4)
+                {
+                    Demon.HurtR.Add(new Bitmap("demon\\demonR\\hurt\\demonhurt" + i + ".png"));
+                    Demon.HurtL.Add(new Bitmap("demon\\demonL\\hurt\\demonhurt" + i + ".png"));
+                }
+
+                if (i <= 4)
+                {
+                    Demon.IdleR.Add(new Bitmap("demon\\demonR\\idle\\demonideal" + i + ".png"));
+                    Demon.IdleL.Add(new Bitmap("demon\\demonL\\idle\\demonideal" + i + ".png"));
+                }
             }
+
             Demon.X = 2930;
-            Demon.Y = Floors[4].Y - Floors[4].H - Demon.Attack1[2].Height;
-            Demon.Start = 2930;
-            Demon.End = 3660;
+            Demon.Y = Floors[4].Y - Floors[4].H - Demon.Attack1R[2].Height;
+            Demon.Startpoint = 2930;
+            Demon.endpoint = 3660;
         }
         bool CheckWalls(string Direction)
         {
+            List<Bitmap> heroIdle;
+            if (Hero.Direction) { heroIdle = Hero.IdleL; } else { heroIdle = Hero.IdleR; }
+
             for (int i = 0; i < Walls.Count; i++)
             {
-                if (Hero.X + Hero.Idle[0].Width + 45 > Walls[i].X && Hero.X < Walls[i].X && Hero.Y >= Walls[i].Y && Hero.Y < Walls[i].Y + Walls[i].img.Height && Direction == "d")
+                if (Hero.X + heroIdle[0].Width + 45 > Walls[i].X && Hero.X < Walls[i].X && Hero.Y >= Walls[i].Y && Hero.Y < Walls[i].Y + Walls[i].img.Height && Direction == "d")
                 {
                     return false;
                 }
@@ -944,9 +1630,12 @@ namespace key_of_shadows
         }
         bool CheckGravity()
         {
+            List<Bitmap> heroIdle;
+            if (Hero.Direction) { heroIdle = Hero.IdleL; } else { heroIdle = Hero.IdleR; }
+
             if (Hero.State != 9 && (ctJump > JumpLimit || ctJump == 0))
             {
-                if (Hero.X > Elevator.X && Hero.X + Hero.Idle[0].Width < Elevator.X + Elevator.Img.Width && Hero.Y + Hero.Idle[0].Height + 50 > Elevator.Y && Hero.Y < Elevator.Y)
+                if (Hero.X > Elevator.X && Hero.X + heroIdle[0].Width < Elevator.X + Elevator.Img.Width && Hero.Y + heroIdle[0].Height + 50 > Elevator.Y && Hero.Y < Elevator.Y)
                 {
                     Elevator.State = true;
                     return false;
@@ -957,7 +1646,7 @@ namespace key_of_shadows
                 }
                 for (int i = 0; i < Floors.Count; i++)
                 {
-                    if (Hero.Y + Hero.Idle[0].Height + 10 > Floors[i].Y - Floors[i].H && Hero.Y + Hero.Idle[0].Height < Floors[i].Y)
+                    if (Hero.Y + heroIdle[0].Height + 10 > Floors[i].Y - Floors[i].H && Hero.Y + heroIdle[0].Height < Floors[i].Y)
                     {
                         return false;
                     }
@@ -980,6 +1669,9 @@ namespace key_of_shadows
         }
         void MoveElevator()
         {
+            if (Hero.Direction) { idle = Hero.IdleL; }
+            else { idle = Hero.IdleR; }
+
             if (!Elevator.Direction)
             {
                 Elevator.Y -= Elevator.Speed;
@@ -998,32 +1690,10 @@ namespace key_of_shadows
             }
             if (Elevator.State)
             {
-                Hero.Y = Elevator.Y - Hero.Idle[0].Height - 25;
+                Hero.Y = Elevator.Y - idle[0].Height - 25;
             }
         }
-        void MoveEnemy(CActor Enemy)
-        {
-            if (Enemy.Start != Enemy.End)
-            {
-                Enemy.State = 1;
-                if (!Enemy.Direction)
-                {
-                    Enemy.X += Enemy.Speed;
-                    if (Enemy.X > Enemy.End)
-                    {
-                        Enemy.Direction = true;
-                    }
-                }
-                else
-                {
-                    Enemy.X -= Enemy.Speed;
-                    if (Enemy.X < Enemy.Start)
-                    {
-                        Enemy.Direction = false;
-                    }
-                }
-            }
-        }
+
         void CreateHealthBar()
         {
             for (int i = 0; i < 8; i++)
