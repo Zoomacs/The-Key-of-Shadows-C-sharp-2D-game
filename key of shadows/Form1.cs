@@ -293,7 +293,14 @@ namespace key_of_shadows
             {
                 if (singlefireball.W == 1)
                 {
-                    singlefireball.X += 10;
+                    if (singlefireball.D == 1)
+                    {
+                        singlefireball.X += 10;
+                    }
+                    else
+                    {
+                        singlefireball.X -= 10;
+                    }
                     singlefireball.IF++;
                     if (singlefireball.IF >= 5)
                     {
@@ -348,10 +355,18 @@ namespace key_of_shadows
             if (!sinbullet)
             {
                 singlefireball = new ball();
-                singlefireball.X = Hero.X + Hero.Attack2r[Hero.Attack2r.Count - 1].Width;
                 singlefireball.Y = Hero.Y;
                 singlefireball.W = 1;
+                singlefireball.D = Hero.D;
                 singlefireball.floor = Hero.floor;
+                if (Hero.D == 1)
+                {
+                    singlefireball.X = Hero.X + Hero.Attack2r[Hero.Attack2r.Count - 1].Width;
+                }
+                else
+                {
+                    singlefireball.X = Hero.X - Hero.Attack2l[Hero.Attack2l.Count - 1].Width;
+                }
                 for (int i = 1; i <= 12; i++)
                 {
                     singlefireball.Charge.Add(new Bitmap("hero\\charge\\herocharge" + i + ".png"));
@@ -359,15 +374,7 @@ namespace key_of_shadows
                 sinbullet = true;
 
             }
-          // ball pnn = new ball();
-          // pnn.X = (hero.X) + Hero.Attack2[Hero.Attack2.Count - 1].Width;
-          // pnn.Y = Hero.Y;
-          // pnn.W = 1;
-          // pnn.floor = Actor.floor;
-          // for (int i = 1; i <= 12; i++)
-          // {
-          //     pnn.Charge.Add(new Bitmap("hero\\charge\\herocharge" + i + ".png"));
-          // }
+          
         }
         void drawsinglefirball(Graphics g)
         {
@@ -692,9 +699,26 @@ namespace key_of_shadows
                         pnn.Y = Hero.Y;
                         pnn.W = 1;
                         pnn.floor = Actor.floor;
+                        pnn.D = Hero.D;
+                        if (Hero.D == 1)
+                        {
+                            pnn.X = Hero.X + Hero.Attack2r[Hero.Attack2r.Count - 1].Width;
+                        }
+                        else
+                        {
+                            pnn.X = Hero.X - Hero.Attack2l[Hero.Attack2l.Count - 1].Width;
+                        }
                         for (int i = 1; i <= 12; i++)
                         {
-                            pnn.Charge.Add(new Bitmap("hero\\charge\\herocharge" + i + ".png"));
+                            if(pnn.D == 1)
+                            {
+                                pnn.Charge.Add(new Bitmap("hero\\heroR\\charge\\herocharge" + i + ".png"));
+                            }
+                            else
+                            {
+                                pnn.Charge.Add(new Bitmap("hero\\heroL\\charge\\herocharge" + i + "_result.png"));
+                            }
+                           
                         }
                         Fireball.Add(pnn);
 
@@ -740,7 +764,14 @@ namespace key_of_shadows
 
                     if (ptrv.W == 1)
                     {
-                        ptrv.X += 10;
+                        if (ptrv.D == 1)
+                        {
+                            ptrv.X += 10;
+                        }
+                        else
+                        {
+                            ptrv.X -= 10;
+                        }
                         ptrv.IF++;
                         if (ptrv.IF >= 5)
                         {
