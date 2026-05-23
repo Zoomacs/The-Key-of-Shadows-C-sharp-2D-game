@@ -202,13 +202,13 @@ namespace key_of_shadows
                     if (e.KeyCode == Keys.A)
                     {
                         keyA = true;
-                        Hero.D = 1;
+                        Hero.D = -1;
                     }
 
                     if (e.KeyCode == Keys.D)
                     {
                         keyD = true;
-                        Hero.D = 0;
+                        Hero.D = 1;
                     }
 
                     if (Hero.State == 0 || Hero.State == 1)
@@ -465,10 +465,12 @@ namespace key_of_shadows
                 Skespe.State = 9;
                 if (heroWorldX > Skespe.X)
                 {
+                    Skespe.D = 1;
                     Skespe.X += Skespe.Speed * 2;
                 }
                 else
                 {
+                    Skespe.D = -1;
                     Skespe.X -= Skespe.Speed * 2;
                 }
             }
@@ -477,10 +479,12 @@ namespace key_of_shadows
                 Skespe.State = 1;
                 if (heroWorldX > Skespe.X)
                 {
+                    Skespe.D = 1;
                     Skespe.X += Skespe.Speed;
                 }
                 else
                 {
+                    Skespe.D = -1;
                     Skespe.X -= Skespe.Speed;
                 }
             }
@@ -575,10 +579,12 @@ namespace key_of_shadows
                 enemy.State = 1;
                 if (heroWorldX > enemy.X)
                 {
+                    enemy.D = 1;
                     enemy.X += enemy.Speed;
                 }
                 else
                 {
+                    enemy.D = -1;
                     enemy.X -= enemy.Speed;
                 }
             }
@@ -1001,41 +1007,127 @@ namespace key_of_shadows
         }
         void drawfa7l(Graphics g)
         {
-            int fa7lDrawX = Fa7l.X - BStartX;
-            if (Fa7l.IF < Fa7l.xadd.Length)
+            int frameToDraw = Fa7l.IF;
+            int drawX = Fa7l.X - BStartX;
+            int drawY = Fa7l.Y - BStartY;
+
+            if (Fa7l.D == 1)
             {
-                fa7lDrawX += Fa7l.xadd[Fa7l.IF];
+                int fa7lDrawX = drawX;
+                if (frameToDraw < Fa7l.xadd.Length)
+                    fa7lDrawX += Fa7l.xadd[frameToDraw];
+
+                if (Fa7l.State == 0 && frameToDraw < Fa7l.Idler.Count)
+                    g.DrawImage(Fa7l.Idler[frameToDraw], fa7lDrawX, drawY);
+                else if (Fa7l.State == 1 && frameToDraw < Fa7l.Walkr.Count)
+                    g.DrawImage(Fa7l.Walkr[frameToDraw], drawX, drawY);
+                else if (Fa7l.State == 3 && frameToDraw < Fa7l.Hurtr.Count)
+                    g.DrawImage(Fa7l.Hurtr[frameToDraw], drawX, drawY);
+                else if (Fa7l.State == 4 && frameToDraw < Fa7l.Deadr.Count)
+                    g.DrawImage(Fa7l.Deadr[frameToDraw], drawX, drawY);
+                else if (Fa7l.State == 5 && frameToDraw < Fa7l.Attack1r.Count)
+                    g.DrawImage(Fa7l.Attack1r[frameToDraw], drawX, drawY);
+                else
+                    g.DrawImage(Fa7l.Idler[0], drawX, drawY);
             }
-            if (Fa7l.State == 0) { g.DrawImage(Fa7l.Idler[Fa7l.IF], fa7lDrawX, Fa7l.Y - BStartY); }
-            else if (Fa7l.State == 1) { g.DrawImage(Fa7l.Walkr[Fa7l.IF], Fa7l.X - BStartX, Fa7l.Y - BStartY); }
-            else if (Fa7l.State == 3) { g.DrawImage(Fa7l.Hurtr[Fa7l.IF], Fa7l.X - BStartX, Fa7l.Y - BStartY); }
-            else if (Fa7l.State == 4) { g.DrawImage(Fa7l.Deadr[Fa7l.IF], Fa7l.X - BStartX, Fa7l.Y - BStartY); }
-            else if (Fa7l.State == 5) { g.DrawImage(Fa7l.Attack1r[Fa7l.IF], Fa7l.X - BStartX, Fa7l.Y - BStartY); }
-            else { g.DrawImage(Fa7l.Idler[0], Fa7l.X, Fa7l.Y); }
+            else
+            {
+                int fa7lDrawX = drawX;
+                if (frameToDraw < Fa7l.xadd.Length)
+                    fa7lDrawX -= Fa7l.xadd[frameToDraw];
+
+                if (Fa7l.State == 0 && frameToDraw < Fa7l.Idlel.Count)
+                    g.DrawImage(Fa7l.Idlel[frameToDraw], fa7lDrawX - Fa7l.Idlel[frameToDraw].Width, drawY);
+                else if (Fa7l.State == 1 && frameToDraw < Fa7l.Walkl.Count)
+                    g.DrawImage(Fa7l.Walkl[frameToDraw], drawX - Fa7l.Walkl[frameToDraw].Width, drawY);
+                else if (Fa7l.State == 3 && frameToDraw < Fa7l.Hurtl.Count)
+                    g.DrawImage(Fa7l.Hurtl[frameToDraw], drawX - Fa7l.Hurtl[frameToDraw].Width, drawY);
+                else if (Fa7l.State == 4 && frameToDraw < Fa7l.Deadl.Count)
+                    g.DrawImage(Fa7l.Deadl[frameToDraw], drawX - Fa7l.Deadl[frameToDraw].Width, drawY);
+                else if (Fa7l.State == 5 && frameToDraw < Fa7l.Attack1l.Count)
+                    g.DrawImage(Fa7l.Attack1l[frameToDraw], drawX - Fa7l.Attack1l[frameToDraw].Width, drawY);
+                else
+                    g.DrawImage(Fa7l.Idlel[0], drawX - Fa7l.Idlel[0].Width, drawY);
+            }
         }
         void drawSkespe(Graphics g)
         {
-            if (Skespe.State == 0) { g.DrawImage(Skespe.Idler[Skespe.IF], Skespe.X - BStartX, Skespe.Y - BStartY); }
-            else if (Skespe.State == 1) { g.DrawImage(Skespe.Walkr[Skespe.IF], Skespe.X - BStartX, Skespe.Y - BStartY); }
-            else if (Skespe.State == 9) { g.DrawImage(Skespe.Climbr[Skespe.IF], Skespe.X - BStartX, Skespe.Y - BStartY); }
-            else if (Skespe.State == 3) { g.DrawImage(Skespe.Hurtr[Skespe.IF], Skespe.X - BStartX, Skespe.Y - BStartY); }
-            else if (Skespe.State == 4) { g.DrawImage(Skespe.Deadr[Skespe.IF], Skespe.X - BStartX, Skespe.Y - BStartY); }
-            else if (Skespe.State == 5) { g.DrawImage(Skespe.Attack1r[Skespe.IF], Skespe.X - BStartX, Skespe.Y - BStartY); }
-            else if (Skespe.State == 6) { g.DrawImage(Skespe.Attack2r[Skespe.IF], Skespe.X - BStartX, Skespe.Y - BStartY); }
+            int frameToDraw = Skespe.IF;
+            int drawX = Skespe.X - BStartX;
+            int drawY = Skespe.Y - BStartY;
+
+            if (Skespe.D == 1)
+            {
+                if (Skespe.State == 0 && frameToDraw < Skespe.Idler.Count)
+                    g.DrawImage(Skespe.Idler[frameToDraw], drawX, drawY);
+                else if (Skespe.State == 1 && frameToDraw < Skespe.Walkr.Count)
+                    g.DrawImage(Skespe.Walkr[frameToDraw], drawX, drawY);
+                else if (Skespe.State == 9 && frameToDraw < Skespe.Climbr.Count)
+                    g.DrawImage(Skespe.Climbr[frameToDraw], drawX, drawY);
+                else if (Skespe.State == 3 && frameToDraw < Skespe.Hurtr.Count)
+                    g.DrawImage(Skespe.Hurtr[frameToDraw], drawX, drawY);
+                else if (Skespe.State == 4 && frameToDraw < Skespe.Deadr.Count)
+                    g.DrawImage(Skespe.Deadr[frameToDraw], drawX, drawY);
+                else if (Skespe.State == 5 && frameToDraw < Skespe.Attack1r.Count)
+                    g.DrawImage(Skespe.Attack1r[frameToDraw], drawX, drawY);
+                else if (Skespe.State == 6 && frameToDraw < Skespe.Attack2r.Count)
+                    g.DrawImage(Skespe.Attack2r[frameToDraw], drawX, drawY);
+            }
+            else
+            {
+                if (Skespe.State == 0 && frameToDraw < Skespe.Idlel.Count)
+                    g.DrawImage(Skespe.Idlel[frameToDraw], drawX - Skespe.Idlel[frameToDraw].Width, drawY);
+                else if (Skespe.State == 1 && frameToDraw < Skespe.Walkl.Count)
+                    g.DrawImage(Skespe.Walkl[frameToDraw], drawX - Skespe.Walkl[frameToDraw].Width, drawY);
+                else if (Skespe.State == 9 && frameToDraw < Skespe.Climbl.Count)
+                    g.DrawImage(Skespe.Climbl[frameToDraw], drawX - Skespe.Climbl[frameToDraw].Width, drawY);
+                else if (Skespe.State == 3 && frameToDraw < Skespe.Hurtl.Count)
+                    g.DrawImage(Skespe.Hurtl[frameToDraw], drawX - Skespe.Hurtl[frameToDraw].Width, drawY);
+                else if (Skespe.State == 4 && frameToDraw < Skespe.Deadl.Count)
+                    g.DrawImage(Skespe.Deadl[frameToDraw], drawX - Skespe.Deadl[frameToDraw].Width, drawY);
+                else if (Skespe.State == 5 && frameToDraw < Skespe.Attack1l.Count)
+                    g.DrawImage(Skespe.Attack1l[frameToDraw], drawX - Skespe.Attack1l[frameToDraw].Width, drawY);
+                else if (Skespe.State == 6 && frameToDraw < Skespe.Attack2l.Count)
+                    g.DrawImage(Skespe.Attack2l[frameToDraw], drawX - Skespe.Attack2l[frameToDraw].Width, drawY);
+            }
         }
         void drawSkewar(Graphics g)
         {
-            if (Skewar.State == 0) { g.DrawImage(Skewar.Idler[Skewar.IF], Skewar.X - BStartX, Skewar.Y - BStartY); }
-            else if (Skewar.State == 1) { g.DrawImage(Skewar.Walkr[Skewar.IF], Skewar.X - BStartX, Skewar.Y - BStartY); }
-            else if (Skewar.State == 7) { g.DrawImage(Skewar.Climbr[Skewar.IF], Skewar.X - BStartX, Skewar.Y - BStartY); }
-            else if (Skewar.State == 3) { g.DrawImage(Skewar.Hurtr[Skewar.IF], Skewar.X - BStartX, Skewar.Y - BStartY); }
-            else if (Skewar.State == 4) { g.DrawImage(Skewar.Deadr[Skewar.IF], Skewar.X - BStartX, Skewar.Y - BStartY); }
-            else if (Skewar.State == 5) { g.DrawImage(Skewar.Attack1r[Skewar.IF], Skewar.X - BStartX, Skewar.Y - BStartY); }
+            int frameToDraw = Skewar.IF;
+            int drawX = Skewar.X - BStartX;
+            int drawY = Skewar.Y - BStartY;
+
+            if (Skewar.D == 1)
+            {
+                if (Skewar.State == 0 && frameToDraw < Skewar.Idler.Count)
+                    g.DrawImage(Skewar.Idler[frameToDraw], drawX, drawY);
+                else if (Skewar.State == 1 && frameToDraw < Skewar.Walkr.Count)
+                    g.DrawImage(Skewar.Walkr[frameToDraw], drawX, drawY);
+                else if (Skewar.State == 3 && frameToDraw < Skewar.Hurtr.Count)
+                    g.DrawImage(Skewar.Hurtr[frameToDraw], drawX, drawY);
+                else if (Skewar.State == 4 && frameToDraw < Skewar.Deadr.Count)
+                    g.DrawImage(Skewar.Deadr[frameToDraw], drawX, drawY);
+                else if (Skewar.State == 5 && frameToDraw < Skewar.Attack1r.Count)
+                    g.DrawImage(Skewar.Attack1r[frameToDraw], drawX, drawY);
+            }
+            else
+            {
+                if (Skewar.State == 0 && frameToDraw < Skewar.Idlel.Count)
+                    g.DrawImage(Skewar.Idlel[frameToDraw], drawX - Skewar.Idlel[frameToDraw].Width, drawY);
+                else if (Skewar.State == 1 && frameToDraw < Skewar.Walkl.Count)
+                    g.DrawImage(Skewar.Walkl[frameToDraw], drawX - Skewar.Walkl[frameToDraw].Width, drawY);
+                else if (Skewar.State == 3 && frameToDraw < Skewar.Hurtl.Count)
+                    g.DrawImage(Skewar.Hurtl[frameToDraw], drawX - Skewar.Hurtl[frameToDraw].Width, drawY);
+                else if (Skewar.State == 4 && frameToDraw < Skewar.Deadl.Count)
+                    g.DrawImage(Skewar.Deadl[frameToDraw], drawX - Skewar.Deadl[frameToDraw].Width, drawY);
+                else if (Skewar.State == 5 && frameToDraw < Skewar.Attack1l.Count)
+                    g.DrawImage(Skewar.Attack1l[frameToDraw], drawX - Skewar.Attack1l[frameToDraw].Width, drawY);
+            }
         }
         void drawhero(Graphics g)
         {
             int frameToDraw = Hero.IF;
-            if (Hero.D == 0)
+            if (Hero.D == 1)
             {
                 if (Hero.State == 0 && Hero.Idler.Count > frameToDraw)
                 {
@@ -1247,17 +1339,22 @@ namespace key_of_shadows
             Hero.Health = 100;
             Hero.HurtStunDuration = 8;
             Hero.floor = 0;
-            Hero.D = 0;
+            Hero.D = 1;
         }
         void Createfa7l()
         {
             for (int i = 1; i <= 12; i++)
             {
-                if (i <= 5) { Fa7l.Attack1r.Add(new Bitmap("fa7l\\attack\\attackfa7l" + i + ".png")); }
-                if (i <= 5) { Fa7l.Deadr.Add(new Bitmap("fa7l\\dead\\deadfa7l" + i + ".png")); }
-                if (i <= 3) { Fa7l.Hurtr.Add(new Bitmap("fa7l\\hurt\\hurtfa7l" + i + ".png")); }
-                if (i <= 10) { Fa7l.Idler.Add(new Bitmap("fa7l\\idle\\idlefa7l" + i + ".png")); }
-                Fa7l.Walkr.Add(new Bitmap("fa7l\\walk\\walkfa7l" + i + ".png"));
+                if (i <= 5) { Fa7l.Attack1r.Add(new Bitmap("fa7l\\fa7lR\\attack\\attackfa7l" + i + ".png")); }
+                if (i <= 5) { Fa7l.Attack1l.Add(new Bitmap("fa7l\\fa7lL\\attack\\attackfa7l" + i + "_result.png")); }
+                if (i <= 5) { Fa7l.Deadr.Add(new Bitmap("fa7l\\fa7lR\\dead\\deadfa7l" + i + ".png")); }
+                if (i <= 5) { Fa7l.Deadl.Add(new Bitmap("fa7l\\fa7lL\\dead\\deadfa7l" + i + "_result.png")); }
+                if (i <= 3) { Fa7l.Hurtr.Add(new Bitmap("fa7l\\fa7lR\\hurt\\hurtfa7l" + i + ".png")); }
+                if (i <= 3) { Fa7l.Hurtl.Add(new Bitmap("fa7l\\fa7lL\\hurt\\hurtfa7l" + i + "_result.png")); }
+                if (i <= 10) { Fa7l.Idler.Add(new Bitmap("fa7l\\fa7lR\\idle\\idlefa7l" + i + ".png")); }
+                if (i <= 10) { Fa7l.Idlel.Add(new Bitmap("fa7l\\fa7lL\\idle\\idlefa7l" + i + "_result.png")); }
+                Fa7l.Walkr.Add(new Bitmap("fa7l\\fa7lR\\walk\\walkfa7l" + i + ".png"));
+                Fa7l.Walkl.Add(new Bitmap("fa7l\\fa7lL\\walk\\walkfa7l" + i + "_result.png"));
             }
             Fa7l.xadd = new int[] { 0, 0, 0, -8, -21, -27, 0, 0, 0, 0 };
             Fa7l.X = 1150;
@@ -1290,46 +1387,59 @@ namespace key_of_shadows
         {
             for (int i = 1; i <= 7; i++)
             {
-                Skewar.Idler.Add(new Bitmap("skewar\\idle\\skewaridle" + i + ".png"));
-                Skewar.Walkr.Add(new Bitmap("skewar\\walk\\skewarwalk" + i + ".png"));
-                if (i <= 5) { Skewar.Attack1r.Add(new Bitmap("skewar\\attack\\skewarattack" + i + ".png")); }
-                if (i <= 4) { Skewar.Deadr.Add(new Bitmap("skewar\\dead\\skewardead" + i + ".png")); }
-                if (i <= 2) { Skewar.Hurtr.Add(new Bitmap("skewar\\hurt\\skewarhurt" + i + ".png")); }
-                Skewar.X = 1300;
-                Skewar.Y = floor[2].y - Skewar.Idler[0].Height - 30;
-                Skewar.State = 0;
-                Skewar.Health = 30;
-                Skewar.Startpoint = 1900;
-                Skewar.endpoint = 2530;
-                Skewar.D = 1;
-                Skewar.IdleTimer = 15;
-                Skewar.DetectRange = 350;
-                Skewar.AttackRange = 70;
-                Skewar.Speed = 12;
-                Skewar.RecoveryDuration = 10;
-                Skewar.HurtStunDuration = 5;
-                Skewar.floor = 2;
+                Skewar.Idler.Add(new Bitmap("skewar\\skewarR\\idle\\skewaridle" + i + ".png"));
+                Skewar.Idlel.Add(new Bitmap("skewar\\skewarL\\idle\\skewaridle" + i + "_result.png"));
+                Skewar.Walkr.Add(new Bitmap("skewar\\skewarR\\walk\\skewarwalk" + i + ".png"));
+                Skewar.Walkl.Add(new Bitmap("skewar\\skewarL\\walk\\skewarwalk" + i + "_result.png"));
+                if (i <= 5) { Skewar.Attack1r.Add(new Bitmap("skewar\\skewarR\\attack\\skewarattack" + i + ".png")); }
+                if (i <= 5) { Skewar.Attack1l.Add(new Bitmap("skewar\\skewarL\\attack\\skewarattack" + i + "_result.png")); }
+                if (i <= 4) { Skewar.Deadr.Add(new Bitmap("skewar\\skewarR\\dead\\skewardead" + i + ".png")); }
+                if (i <= 4) { Skewar.Deadl.Add(new Bitmap("skewar\\skewarL\\dead\\skewardead" + i + "_result.png")); }
+                if (i <= 2) { Skewar.Hurtr.Add(new Bitmap("skewar\\skewarR\\hurt\\skewarhurt" + i + ".png")); }
+                if (i <= 2) { Skewar.Hurtl.Add(new Bitmap("skewar\\skewarL\\hurt\\skewarhurt" + i + "_result.png")); }
             }
+            Skewar.X = 1300;
+            Skewar.Y = floor[2].y - Skewar.Idler[0].Height - 30;
+            Skewar.State = 0;
+            Skewar.Health = 30;
+            Skewar.Startpoint = 1900;
+            Skewar.endpoint = 2530;
+            Skewar.D = 1;
+            Skewar.IdleTimer = 15;
+            Skewar.DetectRange = 350;
+            Skewar.AttackRange = 70;
+            Skewar.Speed = 12;
+            Skewar.RecoveryDuration = 10;
+            Skewar.HurtStunDuration = 5;
+            Skewar.floor = 2;
         }
         void createskespe()
         {
             for (int i = 1; i <= 7; i++)
             {
-                Skespe.Idler.Add(new Bitmap("skespe\\idle\\skespeidle" + i + ".png"));
-                Skespe.Walkr.Add(new Bitmap("skespe\\walk\\skespewalk" + i + ".png"));
-                if (i <= 6) { Skespe.Climbr.Add(new Bitmap("skespe\\run\\skesperun" + i + ".png")); }
+                Skespe.Idler.Add(new Bitmap("skespe\\skespeR\\idle\\skespeidle" + i + ".png"));
+                Skespe.Idlel.Add(new Bitmap("skespe\\skespeL\\idle\\skespeidle" + i + "_result.png"));
+                Skespe.Walkr.Add(new Bitmap("skespe\\skespeR\\walk\\skespewalk" + i + ".png"));
+                Skespe.Walkl.Add(new Bitmap("skespe\\skespeL\\walk\\skespewalk" + i + "_result.png"));
+                if (i <= 6) { Skespe.Climbr.Add(new Bitmap("skespe\\skespeR\\run\\skesperun" + i + ".png")); }
+                if (i <= 6) { Skespe.Climbl.Add(new Bitmap("skespe\\skespeL\\run\\skesperun" + i + "_result.png")); }
                 if (i <= 5)
                 {
-                    Skespe.Deadr.Add(new Bitmap("skespe\\dead\\skespedead" + i + ".png"));
-                    Skespe.Attack2r.Add(new Bitmap("skespe\\attack+run\\skesperunattack" + i + ".png"));
+                    Skespe.Deadr.Add(new Bitmap("skespe\\skespeR\\dead\\skespedead" + i + ".png"));
+                    Skespe.Deadl.Add(new Bitmap("skespe\\skespeL\\dead\\skespedead" + i + "_result.png"));
+                    Skespe.Attack2r.Add(new Bitmap("skespe\\skespeR\\attack+run\\skesperunattack" + i + ".png"));
+                    Skespe.Attack2l.Add(new Bitmap("skespe\\skespeL\\attack+run\\skesperunattack" + i + "_result.png"));
                 }
                 if (i <= 4)
                 {
-                    Skespe.Attack1r.Add(new Bitmap("skespe\\attack\\skespeattack" + i + ".png"));
-                    Skespe.Charger.Add(new Bitmap("skespe\\Arrow.png"));
+                    Skespe.Attack1r.Add(new Bitmap("skespe\\skespeR\\attack\\skespeattack" + i + ".png"));
+                    Skespe.Attack1l.Add(new Bitmap("skespe\\skespeL\\attack\\skespeattack" + i + "_result.png"));
                 }
-                if (i <= 3) { Skespe.Hurtr.Add(new Bitmap("skespe\\hurt\\skespehurt" + i + ".png")); }
-
+                if (i <= 3)
+                {
+                    Skespe.Hurtr.Add(new Bitmap("skespe\\skespeR\\hurt\\skespehurt" + i + ".png"));
+                    Skespe.Hurtl.Add(new Bitmap("skespe\\skespeL\\hurt\\skespehurt" + i + "_result.png"));
+                }
             }
             Skespe.X = 2000;
             Skespe.Y = floor[3].y - Skespe.Idler[0].Height - 30;
