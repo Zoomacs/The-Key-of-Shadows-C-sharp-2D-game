@@ -850,10 +850,20 @@ namespace key_of_shadows
 
         void CheckEnemyHit(CActor enemy)
         {
+            bool heroHitsRight = false;
+            bool heroHitsLeft = false;
             if (enemy.isDead) { return; }
-            if (Hero.State == 5 && (Hero.X + Hero.Attack1r[Hero.IF].Width >= enemy.X - 30) && enemy.X > Hero.X && isAttack)
+            if (Hero.State == 5 && isAttack && !enemy.GotHit)
             {
-                if (!enemy.GotHit)
+                if(Hero.D == 1 && enemy.X > Hero.X && Hero.X + Hero.Attack1r[Hero.IF].Width >= enemy.X - 30)
+                {
+                    heroHitsRight = true;
+                }
+                if (Hero.D == -1 && enemy.X < Hero.X && Hero.X - Hero.Attack1l[Hero.IF].Width <= enemy.X + enemy.Idler[0].Width)
+                {
+                    heroHitsLeft = true;
+                }
+                if (heroHitsRight || heroHitsLeft)
                 {
                     enemy.Health -= 10;
                     enemy.IF = 0;
@@ -861,13 +871,23 @@ namespace key_of_shadows
                     CheckDead(enemy);
                 }
             }
-            else if (Hero.State == 7 && (Hero.X + Hero.Attack3r[Hero.IF].Width >= enemy.X - 30) && enemy.X > Hero.X && isAttack)
+            else if (Hero.State == 7 && isAttack)
             {
-
-                enemy.Health -= 1;
-                enemy.IF = 0;
-                enemy.GotHit = true;
-                CheckDead(enemy);
+                if (Hero.D == 1 && enemy.X > Hero.X && Hero.X + Hero.Attack3r[Hero.IF].Width >= enemy.X - 30)
+                {
+                    heroHitsRight = true;
+                }
+                if (Hero.D == -1 && enemy.X < Hero.X && Hero.X - Hero.Attack3l[Hero.IF].Width <= enemy.X + enemy.Idler[0].Width)
+                {
+                    heroHitsLeft = true;
+                }
+                if (heroHitsRight || heroHitsLeft)
+                {
+                    enemy.Health -= 1;
+                    enemy.IF = 0;
+                    enemy.GotHit = true;
+                    CheckDead(enemy);
+                }
             }
             if (Fireball.Count > 0)
             {
