@@ -24,7 +24,9 @@ namespace key_of_shadows
     class tiles
     {
         public int x, y, w, h;
+        public int cf = 0;
         public Bitmap img;
+        public List<Bitmap> imgs;
     }
 
     class ball
@@ -96,6 +98,7 @@ namespace key_of_shadows
         List<ball> Fireball = new List<ball>();
         List<tiles> floor = new List<tiles>();
         List<tiles> walls = new List<tiles>();
+        List<tiles> portals = new List<tiles>();
         HealthBar H = new HealthBar();
         Elevator Elevator = new Elevator();
         CActor Background = new CActor();
@@ -105,6 +108,7 @@ namespace key_of_shadows
         bool keyA = false;
         bool keyS = false;
         bool keyD = false;
+        bool keyE = false;
         bool sinbullet = false;
         int ctJump, JumpLimit = 4;
         int Speed = 50;
@@ -147,6 +151,7 @@ namespace key_of_shadows
             ManageChargeAnimation();
             managefirballmove();
             Jump();
+            manageportalanimation();
             DrawDubb(CreateGraphics());
             RunStunTimer(Hero);
             CheckHeroHealth();
@@ -159,6 +164,7 @@ namespace key_of_shadows
             Createfloor();
             Createground();
             Createhero();
+            createportals();
             Createfa7l();
             Createskearch();
             createskespe();
@@ -235,6 +241,11 @@ namespace key_of_shadows
                     }
 
                 }
+                if (e.KeyCode == Keys.E)
+                {
+                    keyE = true;
+                    TryTeleport();
+                }
 
                 if (e.KeyCode == Keys.R)
                 {
@@ -260,6 +271,7 @@ namespace key_of_shadows
             if (e.KeyCode == Keys.A) { keyA = false; }
             if (e.KeyCode == Keys.S) { keyS = false; }
             if (e.KeyCode == Keys.D) { keyD = false; }
+            if (e.KeyCode == Keys.E) { keyE = false; }
 
         }
 
@@ -1013,6 +1025,7 @@ namespace key_of_shadows
             CheckBorders();
             Drawbackground(g2);
             Drawladder(g2);
+            drawportals(g2);
             drawfireball(g2);
             drawhero(g2);
             drawfa7l(g2);
@@ -1022,6 +1035,7 @@ namespace key_of_shadows
             Drawwalls(g2);
             DrawElevator(g2);
             DrawHealthBar(g2);
+
         }
         void Drawbackground(Graphics g)
         {
@@ -1360,7 +1374,94 @@ namespace key_of_shadows
             Ladder.Add(pnn);
 
         }
+        bool CheckPortalRegion(tiles portal)
+        {
+            int heroLeft = Hero.X;
+            int heroRight = Hero.X + Hero.Idler[0].Width;
+            int heroTop = Hero.Y;
+            int heroBot = Hero.Y + Hero.Idler[0].Height;
+            int portalLeft = portal.x;
+            int portalRight = portal.x + portal.imgs[0].Width;
+            int portalTop = portal.y;
+            int portalBottom = portal.y + portal.imgs[0].Height;
 
+            return heroRight > portalLeft && heroLeft < portalRight && heroBot > portalTop && heroTop < portalBottom;
+        }
+        void manageportalanimation()
+        {
+            for (int i = 0; i < portals.Count; i++)
+            {
+                tiles p = portals[i];
+                bool heroInside = CheckPortalRegion(p);
+
+                if (heroInside)
+                {
+                    if (p.cf < p.imgs.Count - 1)
+                        p.cf++;
+                }
+                else
+                {
+                    if (p.cf > 0)
+                        p.cf--;
+                }
+            }
+        }
+        void TryTeleport()
+        {
+            for (int i = 0; i < portals.Count; i++)
+            {
+                tiles p = portals[i];
+                if (p.cf == p.imgs.Count - 1 && CheckPortalRegion(p))
+                {
+                    int dest;
+
+                    if (i == 0)
+                    {
+                        dest = 1;
+                    }
+                    else
+                    {
+                        dest = 0;
+                    }
+                    tiles target = portals[dest];
+
+                    Hero.X = target.x + target.imgs[0].Width / 2 - Hero.Idler[0].Width / 2;
+                    Hero.Y = target.y + target.imgs[0].Height - Hero.Idler[0].Height;
+                    Hero.floor = (dest == 0) ? 3 : 2;
+                    return;
+                }
+            }
+        }
+        void drawportals(Graphics g)
+        {
+            int i = portals[0].cf;
+            g.DrawImage(portals[0].imgs[i], portals[0].x - BStartX, portals[0].y - BStartY);
+            i = portals[1].cf;
+            g.DrawImage(portals[1].imgs[i], portals[1].x - BStartX, portals[1].y - BStartY);
+        }
+        void createportals()
+        {
+            tiles pnn = new tiles();
+            pnn.imgs = new List<Bitmap>();
+            for (int i = 1; i < 6; i++)
+            {
+                pnn.imgs.Add(new Bitmap("portals\\redp" + i + ".png"));
+            }
+            pnn.x = Background.Img.Width - pnn.imgs[0].Width - 50;
+            pnn.y = floor[4].y - floor[3].h - pnn.imgs[0].Height + 25;
+            pnn.cf = 0;
+            portals.Add(pnn);
+            pnn = new tiles();
+            pnn.imgs = new List<Bitmap>();
+            for (int i = 1; i < 6; i++)
+            {
+                pnn.imgs.Add(new Bitmap("portals\\greenp" + i + ".png"));
+            }
+            pnn.x = 2630 - pnn.imgs[0].Width;
+            pnn.y = floor[2].y - floor[2].h - pnn.imgs[0].Height + 25;
+            pnn.cf = 0;
+            portals.Add(pnn);
+        }
         void Createhero()
         {
             for (int i = 1; i <= 14; i++)
