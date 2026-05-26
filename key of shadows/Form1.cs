@@ -31,6 +31,8 @@ namespace key_of_shadows
 
     class ball
     {
+        public int type;
+        public int from;
         public int X, Y;
         public int W, D;
         public int IF;
@@ -48,14 +50,15 @@ namespace key_of_shadows
         public int StunTimer;
         public int DetectRange;
         public int Speed;
-        public bool JState;
         public int AttackRange;
         public int RecoveryDuration;
         public int HurtStunDuration;
-        public bool IsStunned;
         public int Health;
+        public bool JState;
+        public bool IsStunned;
         public bool GotHit = false;
         public bool isDead = false;
+        public bool sinbullet = false;
         public Bitmap Img;
         public List<Bitmap> Idlel = new List<Bitmap>();
         public List<Bitmap> Idler = new List<Bitmap>();
@@ -93,8 +96,8 @@ namespace key_of_shadows
         CActor Skespe = new CActor();
         CActor Skewar = new CActor();
         CActor Demon = new CActor();
+        CActor Sat = new CActor();
         List<CActor> Ladder = new List<CActor>();
-        ball singlefireball;
         List<ball> Fireball = new List<ball>();
         List<tiles> floor = new List<tiles>();
         List<tiles> walls = new List<tiles>();
@@ -109,7 +112,6 @@ namespace key_of_shadows
         bool keyS = false;
         bool keyD = false;
         bool keyE = false;
-        bool sinbullet = false;
         int ctJump, JumpLimit = 4;
         int Speed = 50;
         int skespestate;
@@ -155,7 +157,6 @@ namespace key_of_shadows
             CheckGravity();
             ManageSkespeBehavior();
             ManageChargeAnimation();
-            managefirballmove();
             Jump();
             manageportalanimation();
             DrawDubb(CreateGraphics());
@@ -179,7 +180,6 @@ namespace key_of_shadows
             createladder();
             CreateElevator(); 
             CreateHealthBar();
-           // BStartY = Background.Img.Height - ClientSize.Height;
         }
 
         private void Form1_Paint(object sender, PaintEventArgs e)
@@ -260,7 +260,7 @@ namespace key_of_shadows
 
                 if (e.KeyCode == Keys.F)
                 {
-                    createsinglefireball();
+                    createsinglefireball(Hero);
                 }
 
             }
@@ -304,101 +304,35 @@ namespace key_of_shadows
                 LaserOn = false;
             }
         }
-        void managefirballmove()
+        void createsinglefireball(CActor Actor)
         {
-            if (sinbullet)
+            if (!Actor.sinbullet)
             {
-                if (singlefireball.W == 1)
+                ball pnn = new ball(); 
+                pnn.Y = Hero.Y;
+                pnn.W = 1;
+                pnn.D = Hero.D;
+                pnn.floor = Hero.floor;
+                if (Actor.D == 1)
                 {
-                    if (singlefireball.D == 1)
-                    {
-                        singlefireball.X += 10;
-                    }
-                    else
-                    {
-                        singlefireball.X -= 10;
-                    }
-                    singlefireball.IF++;
-                    if (singlefireball.IF >= 5)
-                    {
-                        singlefireball.IF = 0;
-                    }
-                    bool hit = false;
-
-                    if (!Fa7l.isDead && singlefireball.X + singlefireball.Charge[singlefireball.IF].Width >= Fa7l.X && singlefireball.X < Fa7l.X + 50 && singlefireball.floor == Fa7l.floor)
-                    {
-                        Fa7l.Health -= 5;
-                        Fa7l.GotHit = true;
-                        CheckDead(Fa7l);
-                        hit = true;
-                    }
-                    if (!Skewar.isDead && singlefireball.X + singlefireball.Charge[singlefireball.IF].Width >= Skewar.X && singlefireball.X < Skewar.X + 50 && singlefireball.floor == Skewar.floor)
-                    {
-                        Skewar.Health -= 5;
-                        Skewar.GotHit = true;
-                        CheckDead(Skewar);
-                        hit = true;
-                    }
-                    if (!Skespe.isDead && singlefireball.X + singlefireball.Charge[singlefireball.IF].Width >= Skespe.X && singlefireball.X < Skespe.X + 50 && singlefireball.floor == Skespe.floor)
-                    {
-                        Skespe.Health -= 5;
-                        Skespe.GotHit = true;
-                        CheckDead(Skespe);
-                        hit = true;
-                    }
-                    if (singlefireball.X > Background.Img.Width)
-                    {
-                        hit = true;
-                    }
-                    if (hit)
-                    {
-                        singlefireball.W = 2;
-                        singlefireball.IF = 5;
-                    }
-                }
-                else if (singlefireball.W == 2)
-                {
-                    singlefireball.IF++;
-                    if (singlefireball.IF >= singlefireball.Charge.Count)
-                    {
-                        singlefireball = null;
-                        sinbullet = false;
-                    }
-                }
-            }
-        }
-        void createsinglefireball()
-        {
-            if (!sinbullet)
-            {
-                singlefireball = new ball();
-                singlefireball.Y = Hero.Y;
-                singlefireball.W = 1;
-                singlefireball.D = Hero.D;
-                singlefireball.floor = Hero.floor;
-                if (Hero.D == 1)
-                {
-                    singlefireball.X = Hero.X + Hero.Attack2r[Hero.Attack2r.Count - 1].Width;
+                    pnn.X = Actor.X + Actor.Attack2r[Actor.Attack2r.Count - 1].Width;
                 }
                 else
                 {
-                    singlefireball.X = Hero.X - Hero.Attack2l[Hero.Attack2l.Count - 1].Width;
+                    pnn.X = Actor.X - Actor.Attack2l[Actor.Attack2l.Count - 1].Width;
                 }
                 for (int i = 1; i <= 12; i++)
                 {
-                    singlefireball.Charge.Add(new Bitmap("hero\\charge\\herocharge" + i + ".png"));
+                    pnn.Charge.Add(new Bitmap("hero\\charge\\herocharge" + i + ".png"));
                 }
-                sinbullet = true;
-
+                pnn.type = 2;
+                if (Actor == Hero) { pnn.from = 0; }
+                if (Actor == Sat) { pnn.from = 1; }
+                if (Actor == Skearch) { pnn.from = 2; }
+                Fireball.Add(pnn);
+                Actor.sinbullet = true;
             }
           
-        }
-        void drawsinglefirball(Graphics g)
-        {
-            if (sinbullet)
-            {
-                g.DrawImage(singlefireball.Charge[singlefireball.IF], singlefireball.X - BStartX, singlefireball.Y - BStartY);
-            }
         }
         void ManageHeroMove()
         {
@@ -774,6 +708,7 @@ namespace key_of_shadows
                             }
                            
                         }
+                        pnn.type = 1;
                         Fireball.Add(pnn);
 
                     }
@@ -869,6 +804,12 @@ namespace key_of_shadows
                         ptrv.IF++;
                         if (ptrv.IF >= ptrv.Charge.Count)
                         {
+                            if(ptrv.type == 2)
+                            {
+                                if (ptrv.from == 0) { Hero.sinbullet = false; }
+                                if (ptrv.from == 1) { Sat.sinbullet = false; }
+                                if (ptrv.from == 2) { Skearch.sinbullet = false; }
+                            }
                             Fireball.RemoveAt(i);
                             i--;
                         }
@@ -1715,6 +1656,36 @@ namespace key_of_shadows
             Demon.RecoveryDuration = 15;
             Demon.HurtStunDuration = 4;
             Demon.floor = 0;
+        }
+        void CreateSat()
+        {
+            for (int i = 1; i <= 12; i++)
+            {
+                if (i <= 12) { Sat.Walkr.Add(new Bitmap("sat\\satR\\walk\\satwalk" + i + ".png")); }
+                if (i <= 12) { Sat.Walkl.Add(new Bitmap("sat\\satL\\walk\\satwalk" + i + "_result.png")); }
+                if (i <= 8) { Sat.Attack1r.Add(new Bitmap("sat\\satR\\attack\\satattack" + i + ".png")); }
+                if (i <= 8) { Sat.Attack1l.Add(new Bitmap("sat\\satL\\attack\\satattack" + i + "_result.png")); }
+                if (i <= 7) { Sat.Idler.Add(new Bitmap("sat\\satR\\idle\\satidle" + i + ".png")); }
+                if (i <= 7) { Sat.Idlel.Add(new Bitmap("sat\\satL\\idle\\satidle" + i + "_result.png")); }
+                if (i <= 4) { Sat.Deadr.Add(new Bitmap("sat\\satR\\dead\\satdead" + i + ".png")); }
+                if (i <= 4) { Sat.Deadl.Add(new Bitmap("sat\\satL\\dead\\satdead" + i + "_result.png")); }
+                if (i <= 4) { Sat.Hurtr.Add(new Bitmap("sat\\satR\\hurt\\sathurt" + i + ".png")); }
+                if (i <= 4) { Sat.Hurtl.Add(new Bitmap("sat\\satL\\hurt\\sathurt" + i + "_result.png")); }
+            }
+            Sat.X = 2800;
+            Sat.Y = floor[2].y - Sat.Idler[0].Height - 30;
+            Sat.State = 0;
+            Sat.Health = 35;
+            Sat.Startpoint = 2800;
+            Sat.endpoint = 3780 - Sat.Idler[0].Width - 50;
+            Sat.D = 1;
+            Sat.IdleTimer = 15;
+            Sat.DetectRange = 500;
+            Sat.AttackRange = 400;
+            Sat.Speed = 8;
+            Sat.RecoveryDuration = 45;
+            Sat.HurtStunDuration = 6;
+            Sat.floor = 3;
         }
         bool CheckWalls(string Direction)
         {
