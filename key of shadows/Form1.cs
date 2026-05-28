@@ -101,6 +101,7 @@ namespace key_of_shadows
         List<tiles> floor = new List<tiles>();
         List<tiles> walls = new List<tiles>();
         List<tiles> portals = new List<tiles>();
+        List<tiles> tables = new List<tiles>();
         HealthBar H = new HealthBar();
         Elevator Elevator = new Elevator();
         CActor Background = new CActor();
@@ -178,6 +179,7 @@ namespace key_of_shadows
             Createskearch();
             createskespe();
             createskewar();
+            createtable();
             createdemon();
             CreateSat();
             createladder();
@@ -347,7 +349,7 @@ namespace key_of_shadows
         }
         void ManageHeroMove()
         {
-            if (keyA == true && CheckWalls("a"))
+            if (keyA == true && CheckWalls("a") && Checktable("a"))
             {
                 if (Hero.State != 2)
                 {
@@ -358,7 +360,7 @@ namespace key_of_shadows
                     Hero.X -= Speed;
                 }
             }
-            else if (keyD == true && CheckWalls("d"))
+            else if (keyD == true && CheckWalls("d") && Checktable("d"))
             {
                 if (Hero.State != 2)
                 {
@@ -1051,6 +1053,7 @@ namespace key_of_shadows
             drawSkespe(g2);
             Drawfloor(g2);
             Drawwalls(g2);
+            drawtables(g2);
             DrawElevator(g2);
             DrawHealthBar(g2);
 
@@ -1077,6 +1080,16 @@ namespace key_of_shadows
             for (int i = 0; i < 5; i++)
             {
                 tiles ptrv = walls[i];
+                g.DrawRectangle(pn, ptrv.x - BStartX, ptrv.y - BStartY, ptrv.img.Width, ptrv.img.Height);
+                g.DrawImage(ptrv.img, ptrv.x - BStartX, ptrv.y - BStartY);
+            }
+        }
+        void drawtables(Graphics g)
+        {
+            Pen pn = new Pen(Color.Yellow, 2);
+            for (int i = 0; i < tables.Count; i++)
+            {
+                tiles ptrv = tables[i];
                 g.DrawRectangle(pn, ptrv.x - BStartX, ptrv.y - BStartY, ptrv.img.Width, ptrv.img.Height);
                 g.DrawImage(ptrv.img, ptrv.x - BStartX, ptrv.y - BStartY);
             }
@@ -1431,6 +1444,36 @@ namespace key_of_shadows
             pnn.img = new Bitmap("pillars\\p21.png");
             walls.Add(pnn);
         }
+        void createtable()
+        {
+            tiles pnn = new tiles();
+            pnn.img = new Bitmap("Tables\\table-2.png");
+            pnn.x = 1830 - pnn.img.Width - 30;
+            pnn.y = floor[1].y - pnn.img.Height;
+            tables.Add(pnn);
+            pnn = new tiles();
+            pnn.img = new Bitmap("Tables\\table-2.png");
+            pnn.x = 840 + walls[2].img.Width + 30;
+            pnn.y = floor[1].y - pnn.img.Height;
+            tables.Add(pnn);
+            pnn = new tiles();
+            pnn.img = new Bitmap("Tables\\table-5.png");
+            pnn.x = 30;
+            pnn.y = floor[3].y - pnn.img.Height;
+            tables.Add(pnn);
+            pnn = new tiles();
+            pnn.img = new Bitmap("Tables\\table-3.png");
+            pnn.x = 840 - pnn.img.Width - 30;
+            pnn.y = floor[2].y - pnn.img.Height;
+            tables.Add(pnn);
+            pnn = new tiles();
+            pnn.img = new Bitmap("Tables\\table-3.png");
+            pnn.x = 840 + walls[2].img.Width + 30;
+            pnn.y = floor[2].y - pnn.img.Height;
+            tables.Add(pnn);
+
+
+        }
         void createladder()
         {
             CActor pnn = new CActor();
@@ -1781,6 +1824,21 @@ namespace key_of_shadows
                     return false;
                 }
                 else if (Hero.X - 130 < walls[i].x && Hero.X > walls[i].x  && Hero.Y >= walls[i].y  && Hero.Y < walls[i].y + walls[i].img.Height && Direction == "a")
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+        bool Checktable(string Direction)
+        {
+            for (int i = 0; i < tables.Count; i++)
+            {
+                if (Hero.X + Hero.Idler[0].Width + 45 > tables[i].x && Hero.X < tables[i].x && Hero.Y >= tables[i].y && Hero.Y < tables[i].y + tables[i].img.Height && Direction == "d")
+                {
+                    return false;
+                }
+                else if (Hero.X - 130 < tables[i].x && Hero.X > tables[i].x && Hero.Y >= tables[i].y && Hero.Y < tables[i].y + walls[i].img.Height && Direction == "a")
                 {
                     return false;
                 }
