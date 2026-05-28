@@ -152,6 +152,9 @@ namespace key_of_shadows
             CheckEnemyHit(Fa7l);
             CheckHeroHit(Fa7l);
             ManageActorAnimation(Skespe);
+            ManageActorAnimation(Sat);
+            CheckEnemyHit(Sat);
+            Manageenemybehavior(Sat);
             CheckEnemyHit(Skespe);
             CheckHeroHit(Skespe);
             CheckGravity();
@@ -177,6 +180,7 @@ namespace key_of_shadows
             createskespe();
             createskewar();
             createdemon();
+            CreateSat();
             createladder();
             CreateElevator(); 
             CreateHealthBar();
@@ -309,10 +313,10 @@ namespace key_of_shadows
             if (!Actor.sinbullet)
             {
                 ball pnn = new ball(); 
-                pnn.Y = Hero.Y;
+                pnn.Y = Actor.Y;
                 pnn.W = 1;
-                pnn.D = Hero.D;
-                pnn.floor = Hero.floor;
+                pnn.D = Actor.D;
+                pnn.floor = Actor.floor;
                 if (Actor.D == 1)
                 {
                     pnn.X = Actor.X + Actor.Attack2r[Actor.Attack2r.Count - 1].Width;
@@ -321,9 +325,17 @@ namespace key_of_shadows
                 {
                     pnn.X = Actor.X - Actor.Attack2l[Actor.Attack2l.Count - 1].Width;
                 }
+
                 for (int i = 1; i <= 12; i++)
                 {
-                    pnn.Charge.Add(new Bitmap("hero\\charge\\herocharge" + i + ".png"));
+                    if (pnn.D == 1)
+                    {
+                        pnn.Charge.Add(new Bitmap("hero\\heroR\\charge\\herocharge" + i + ".png"));
+                    }
+                    else
+                    {
+                        pnn.Charge.Add(new Bitmap("hero\\heroL\\charge\\herocharge" + i + "_result.png"));
+                    }
                 }
                 pnn.type = 2;
                 if (Actor == Hero) { pnn.from = 0; }
@@ -481,8 +493,11 @@ namespace key_of_shadows
                 {
                     enemy.IsStunned = false;
                     enemy.StunTimer = 0;
-
-                    if (enemy.State == 3 || enemy.State == 5)
+                    if (enemy == Sat)
+                    {
+                        Sat.sinbullet = false;
+                    }
+                    if (enemy.State == 3 || enemy.State == 5 || enemy.State == 6)
                     {
                         enemy.State = 0;
                         enemy.IF = 0;
@@ -492,6 +507,7 @@ namespace key_of_shadows
                         {
                             Demon.Y -= 40;
                         }
+                        
                     }
                 }
             }
@@ -581,8 +597,30 @@ namespace key_of_shadows
             }
             else
             {
-                TriggerAttack(enemy);
+                if (enemy == Sat)
+                {
+                    enemy.State = 0;
+                    if (heroWorldX > enemy.X)
+                    {
+                        enemy.D = 1;
+                    }
+                    else
+                    {
+                        enemy.D = -1;
+                    }
+                    if (!Sat.sinbullet)
+                    {
+                        createsinglefireball(Sat);
+                        Sat.IsStunned = true;
+                        Sat.StunTimer = Sat.RecoveryDuration;
+                    }
+                }
+                else
+                {
+                    TriggerAttack(enemy);
+                }
             }
+            
         }
         void TriggerSkeSpeAttack2()
         {
@@ -789,6 +827,13 @@ namespace key_of_shadows
                             CheckDead(Skespe);
                             hit = true;
                         }
+                        if (!Hero.isDead && ptrv.from != 0 && ptrv.X + ptrv.Charge[ptrv.IF].Width >= Hero.X && ptrv.X < Hero.X + Hero.Idler[0].Width && ptrv.floor == Hero.floor)
+                        {
+                            Hero.Health -= 10;
+                            Hero.GotHit = true;
+                            CheckDead(Hero);
+                            hit = true;
+                        }
                         if (ptrv.X > Background.Img.Width)
                         {
                             hit = true;
@@ -848,7 +893,7 @@ namespace key_of_shadows
             bool heroHitsRight = false;
             bool heroHitsLeft = false;
             if (enemy.isDead) { return; }
-            if (Hero.State == 5 && isAttack && !enemy.GotHit)
+            if (Hero.State == 5 && isAttack && !enemy.GotHit && Hero.floor == enemy.floor)
             {
                 if(Hero.D == 1 && enemy.X > Hero.X && Hero.X + Hero.Attack1r[Hero.IF].Width >= enemy.X - 30)
                 {
@@ -866,7 +911,7 @@ namespace key_of_shadows
                     CheckDead(enemy);
                 }
             }
-            else if (Hero.State == 7 && isAttack)
+            else if (Hero.State == 7 && isAttack && Hero.floor == enemy.floor)
             {
                 if (Hero.D == 1 && enemy.X > Hero.X && Hero.X + Hero.Attack3r[Hero.IF].Width >= enemy.X - 30)
                 {
@@ -893,7 +938,7 @@ namespace key_of_shadows
                     {
                         int fireballWorldX = ptrv.X;
                         int enemyWidth = 50;
-                        if (fireballWorldX + ptrv.Charge[ptrv.IF].Width >= enemy.X && fireballWorldX < enemy.X + enemyWidth)
+                        if (fireballWorldX + ptrv.Charge[ptrv.IF].Width >= enemy.X && fireballWorldX < enemy.X + enemyWidth && Hero.floor == enemy.floor)
                         {
                             enemy.Health -= 5;
                             enemy.IF = 0;
@@ -1013,6 +1058,7 @@ namespace key_of_shadows
             drawhero(g2);
             drawfa7l(g2);
             DrawDemon(g2);
+            drawSat(g2);
             drawSkewar(g2);
             drawSkespe(g2);
             Drawfloor(g2);
@@ -1289,6 +1335,57 @@ namespace key_of_shadows
                 }
             }
             
+        }
+        void drawSat(Graphics g)
+        {
+            int frameToDraw = Sat.IF;
+            if (Sat.D == 1)
+            {
+                if (Sat.State == 0 && Sat.Idler.Count > frameToDraw)
+                {
+                    g.DrawImage(Sat.Idler[frameToDraw], Sat.X - BStartX, Sat.Y - BStartY);
+                }
+                else if (Sat.State == 1)
+                {
+                    g.DrawImage(Sat.Walkr[frameToDraw], Sat.X - BStartX, Sat.Y - BStartY);
+                }
+                else if (Sat.State == 3)
+                {
+                    g.DrawImage(Sat.Hurtr[frameToDraw], Sat.X - BStartX, Sat.Y - BStartY);
+                }
+                else if (Sat.State == 4)
+                {
+                    g.DrawImage(Sat.Deadr[frameToDraw], Sat.X - BStartX, Sat.Y - BStartY - 50);
+                }
+                else if (Sat.State == 6)
+                {
+                    g.DrawImage(Sat.Attack2r[frameToDraw], Sat.X - BStartX, Sat.Y - BStartY);
+                }
+            }
+            else
+            {
+                if (Sat.State == 0 && Sat.Idler.Count > frameToDraw)
+                {
+                    g.DrawImage(Sat.Idlel[frameToDraw], Sat.X - BStartX - Sat.Idlel[frameToDraw].Width, Sat.Y - BStartY);
+                }
+                else if (Sat.State == 1)
+                {
+                    g.DrawImage(Sat.Walkl[frameToDraw], Sat.X - BStartX - Sat.Walkl[frameToDraw].Width, Sat.Y - BStartY);
+                }
+                else if (Sat.State == 3)
+                {
+                    g.DrawImage(Sat.Hurtl[frameToDraw], Sat.X - BStartX - Sat.Hurtl[frameToDraw].Width, Sat.Y - BStartY);
+                }
+                else if (Sat.State == 4)
+                {
+                    g.DrawImage(Sat.Deadl[frameToDraw], Sat.X - BStartX - Sat.Deadl[frameToDraw].Width, Sat.Y - BStartY - 50);
+                }
+                else if (Sat.State == 6)
+                {
+                    g.DrawImage(Sat.Attack2l[frameToDraw], Sat.X - BStartX - Sat.Attack2l[frameToDraw].Width, Sat.Y - BStartY);
+                }
+            }
+
         }
 
         void drawfireball(Graphics g)
@@ -1663,8 +1760,8 @@ namespace key_of_shadows
             {
                 if (i <= 12) { Sat.Walkr.Add(new Bitmap("sat\\satR\\walk\\satwalk" + i + ".png")); }
                 if (i <= 12) { Sat.Walkl.Add(new Bitmap("sat\\satL\\walk\\satwalk" + i + "_result.png")); }
-                if (i <= 8) { Sat.Attack1r.Add(new Bitmap("sat\\satR\\attack\\satattack" + i + ".png")); }
-                if (i <= 8) { Sat.Attack1l.Add(new Bitmap("sat\\satL\\attack\\satattack" + i + "_result.png")); }
+                if (i <= 8) { Sat.Attack2r.Add(new Bitmap("sat\\satR\\attack\\satattack" + i + ".png")); }
+                if (i <= 8) { Sat.Attack2l.Add(new Bitmap("sat\\satL\\attack\\satattack" + i + "_result.png")); }
                 if (i <= 7) { Sat.Idler.Add(new Bitmap("sat\\satR\\idle\\satidle" + i + ".png")); }
                 if (i <= 7) { Sat.Idlel.Add(new Bitmap("sat\\satL\\idle\\satidle" + i + "_result.png")); }
                 if (i <= 4) { Sat.Deadr.Add(new Bitmap("sat\\satR\\dead\\satdead" + i + ".png")); }
@@ -1685,7 +1782,7 @@ namespace key_of_shadows
             Sat.Speed = 8;
             Sat.RecoveryDuration = 45;
             Sat.HurtStunDuration = 6;
-            Sat.floor = 3;
+            Sat.floor = 2;
         }
         bool CheckWalls(string Direction)
         {
@@ -1786,10 +1883,6 @@ namespace key_of_shadows
             if (BStartY < 0) BStartY = 0;
             if (BStartX > Background.Img.Width - ClientSize.Width) BStartX = Background.Img.Width - ClientSize.Width;
             if (BStartY > Background.Img.Height - ClientSize.Height) BStartY = Background.Img.Height - ClientSize.Height;
-        }
-        void CreateEntitiesandStructures()
-        {
-
         }
     }
     
