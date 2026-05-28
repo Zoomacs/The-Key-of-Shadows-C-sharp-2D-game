@@ -102,16 +102,20 @@ namespace key_of_shadows
         List<tiles> walls = new List<tiles>();
         List<tiles> portals = new List<tiles>();
         List<tiles> tables = new List<tiles>();
+        List<tiles> Key = new List<tiles>();
+        List<tiles> Healers = new List<tiles>();
+        List<tiles> Start = new List<tiles>();
         HealthBar H = new HealthBar();
         Elevator Elevator = new Elevator();
         CActor Background = new CActor();
         int BStartX, BStartY;
-        bool keyW = false;
-        bool keyW2 = false;
-        bool keyA = false;
-        bool keyS = false;
-        bool keyD = false;
-        bool keyE = false;
+        int Fstate;
+        bool keyW;
+        bool keyW2;
+        bool keyA;
+        bool keyS;
+        bool keyD;
+        bool keyE;
         int ctJump, JumpLimit = 4;
         int Speed = 50;
         int skespestate;
@@ -121,10 +125,11 @@ namespace key_of_shadows
         public Form1()
         {
             WindowState = FormWindowState.Maximized;
-            FormBorderStyle = FormBorderStyle.None;
+            // FormBorderStyle = FormBorderStyle.None;
             KeyDown += Form1_KeyDown;
             KeyUp += Form1_KeyUp;
             MouseDown += Form1_MouseDown;
+            MouseMove += Form1_MouseMove;
             MouseUp += Form1_MouseUp;
             Paint += Form1_Paint;
             Load += Form1_Load;
@@ -133,6 +138,8 @@ namespace key_of_shadows
             tt.Interval = 100;
             tt.Start();
         }
+
+
 
         private void Tt_Tick(object sender, EventArgs e)
         {
@@ -183,8 +190,11 @@ namespace key_of_shadows
             createdemon();
             CreateSat();
             createladder();
-            CreateElevator(); 
+            CreateElevator();
             CreateHealthBar();
+            CreateKey();
+            CreateHealers();
+            CreateStartMenu();
         }
 
         private void Form1_Paint(object sender, PaintEventArgs e)
@@ -251,7 +261,20 @@ namespace key_of_shadows
                     }
 
                 }
-                if (e.KeyCode == Keys.E)
+                if (e.KeyCode == Keys.E && CheckKey())
+                {
+                    Key[0].cf = 1;
+                    Key[1].cf = 0;
+                }
+                else if (e.KeyCode == Keys.E && CheckHealers())
+                {
+                    Hero.Health += 12;
+                    if (Hero.Health > 100)
+                    {
+                        Hero.Health = 100;
+                    }
+                }
+                else if (e.KeyCode == Keys.E)
                 {
                     keyE = true;
                     TryTeleport();
@@ -300,6 +323,22 @@ namespace key_of_shadows
                 Hero.State = 7;
                 Hero.IF = 0;
             }
+            if (Start[0].cf == 1)
+            {
+                Fstate = 1;
+            }
+        }
+        private void Form1_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (Start != null && e.X > 600 && e.X < 1300 && e.Y > 730 && e.Y < 880)
+            {
+                Start[0].cf = 1;
+            }
+            else if (Start != null)
+            {
+                Start[0].cf = 0;
+            }
+            Text = e.X.ToString() + "   " + e.Y.ToString();
         }
 
         private void Form1_MouseUp(object sender, MouseEventArgs e)
@@ -313,7 +352,7 @@ namespace key_of_shadows
         {
             if (!Actor.sinbullet)
             {
-                ball pnn = new ball(); 
+                ball pnn = new ball();
                 pnn.Y = Actor.Y;
                 pnn.W = 1;
                 pnn.D = Actor.D;
@@ -345,7 +384,7 @@ namespace key_of_shadows
                 Fireball.Add(pnn);
                 Actor.sinbullet = true;
             }
-          
+
         }
         void ManageHeroMove()
         {
@@ -508,7 +547,7 @@ namespace key_of_shadows
                         {
                             Demon.Y -= 40;
                         }
-                        
+
                     }
                 }
             }
@@ -547,7 +586,7 @@ namespace key_of_shadows
             }
             if (enemy == Demon && !enemy.isDead)
             {
-                
+
             }
         }
         void Demonfly(CActor enemy)
@@ -621,7 +660,7 @@ namespace key_of_shadows
                     TriggerAttack(enemy);
                 }
             }
-            
+
         }
         void TriggerSkeSpeAttack2()
         {
@@ -737,7 +776,7 @@ namespace key_of_shadows
                         }
                         for (int i = 1; i <= 12; i++)
                         {
-                            if(pnn.D == 1)
+                            if (pnn.D == 1)
                             {
                                 pnn.Charge.Add(new Bitmap("hero\\heroR\\charge\\herocharge" + i + ".png"));
                             }
@@ -745,7 +784,7 @@ namespace key_of_shadows
                             {
                                 pnn.Charge.Add(new Bitmap("hero\\heroL\\charge\\herocharge" + i + "_result.png"));
                             }
-                           
+
                         }
                         pnn.type = 1;
                         Fireball.Add(pnn);
@@ -850,7 +889,7 @@ namespace key_of_shadows
                         ptrv.IF++;
                         if (ptrv.IF >= ptrv.Charge.Count)
                         {
-                            if(ptrv.type == 2)
+                            if (ptrv.type == 2)
                             {
                                 if (ptrv.from == 0) { Hero.sinbullet = false; }
                                 if (ptrv.from == 1) { Sat.sinbullet = false; }
@@ -896,7 +935,7 @@ namespace key_of_shadows
             if (enemy.isDead) { return; }
             if (Hero.State == 5 && isAttack && !enemy.GotHit && Hero.floor == enemy.floor)
             {
-                if(Hero.D == 1 && enemy.X > Hero.X && Hero.X + Hero.Attack1r[Hero.IF].Width >= enemy.X - 30)
+                if (Hero.D == 1 && enemy.X > Hero.X && Hero.X + Hero.Attack1r[Hero.IF].Width >= enemy.X - 30)
                 {
                     heroHitsRight = true;
                 }
@@ -994,7 +1033,7 @@ namespace key_of_shadows
             }
         }
 
-               bool CheckLadder(string Direction)
+        bool CheckLadder(string Direction)
         {
             for (int i = 0; i < Ladder.Count; i++)
             {
@@ -1013,8 +1052,8 @@ namespace key_of_shadows
                 else if (Hero.X > Ladder[i].X && Hero.X + Hero.Idler[0].Width < Ladder[i].X + Ladder[i].Img.Width && Hero.Y + Hero.Idler[0].Height > Ladder[i].Y - 100 && Hero.Y + Hero.Idler[0].Height < Ladder[i].Y + Ladder[i].Img.Height && Direction == "d" && Hero.State != 1 && Hero.State != 2)
                 {
                     Hero.X = Ladder[i].X + Ladder[i].Img.Width / 2 - Hero.Idler[0].Width / 2;
-                        Hero.Y += Speed;
-                    
+                    Hero.Y += Speed;
+
                     if (Hero.Y + Hero.Idler[0].Height > Ladder[i].Y + Ladder[i].Img.Height - 70)
                     {
                         Hero.Y = floor[Ladder[i].floor + 1].y - floor[Ladder[i].floor + 1].h - Hero.Idler[0].Height;
@@ -1027,7 +1066,27 @@ namespace key_of_shadows
             return false;
         }
 
+        bool CheckKey()
+        {
+            if (Hero.Y < Key[1].y && Hero.Y + Hero.Idler[0].Height > Key[1].y && Hero.X > Key[1].x && Hero.X < Key[1].x + 200)
+            {
+                return true;
+            }
+            return false;
+        }
 
+        bool CheckHealers()
+        {
+            for (int i = 0; i < Healers.Count; i++)
+            {
+                if (Hero.Y < Healers[i].y + Healers[i].img.Height && Hero.Y + Hero.Idler[0].Height > Healers[i].y && Hero.X > Healers[i].x && Hero.X < Healers[i].x + 200)
+                {
+                    Healers.Remove(Healers[i]);
+                    return true;
+                }
+            }
+            return false;
+        }
 
         void DrawDubb(Graphics g)
         {
@@ -1056,7 +1115,9 @@ namespace key_of_shadows
             drawtables(g2);
             DrawElevator(g2);
             DrawHealthBar(g2);
-
+            DrawKey(g2);
+            DrawHealers(g2);
+            DrawStartMenu(g2);
         }
         void Drawbackground(Graphics g)
         {
@@ -1071,7 +1132,7 @@ namespace key_of_shadows
             for (int i = 0; i < 5; i++)
             {
                 tiles ptrv = floor[i];
-                g.DrawRectangle(pn, ptrv.x - BStartX, ptrv.y - BStartY, ptrv.w, ptrv.h);
+                //g.DrawRectangle(pn, ptrv.x - BStartX, ptrv.y - BStartY, ptrv.w, ptrv.h);
             }
         }
         void Drawwalls(Graphics g)
@@ -1080,7 +1141,7 @@ namespace key_of_shadows
             for (int i = 0; i < 5; i++)
             {
                 tiles ptrv = walls[i];
-                g.DrawRectangle(pn, ptrv.x - BStartX, ptrv.y - BStartY, ptrv.img.Width, ptrv.img.Height);
+                // g.DrawRectangle(pn, ptrv.x - BStartX, ptrv.y - BStartY, ptrv.img.Width, ptrv.img.Height);
                 g.DrawImage(ptrv.img, ptrv.x - BStartX, ptrv.y - BStartY);
             }
         }
@@ -1090,7 +1151,7 @@ namespace key_of_shadows
             for (int i = 0; i < tables.Count; i++)
             {
                 tiles ptrv = tables[i];
-                g.DrawRectangle(pn, ptrv.x - BStartX, ptrv.y - BStartY, ptrv.img.Width, ptrv.img.Height);
+                // g.DrawRectangle(pn, ptrv.x - BStartX, ptrv.y - BStartY, ptrv.img.Width, ptrv.img.Height);
                 g.DrawImage(ptrv.img, ptrv.x - BStartX, ptrv.y - BStartY);
             }
         }
@@ -1187,7 +1248,7 @@ namespace key_of_shadows
                     g.DrawImage(Skespe.Attack2l[frameToDraw], drawX - Skespe.Attack2l[frameToDraw].Width, drawY);
             }
         }
-        
+
         void DrawDemon(Graphics g)
         {
             int frameToDraw = Demon.IF;
@@ -1335,7 +1396,7 @@ namespace key_of_shadows
                     g.DrawImage(Hero.Climbl[frameToDraw], Hero.X - BStartX - Hero.Climbl[frameToDraw].Width, Hero.Y - BStartY);
                 }
             }
-            
+
         }
         void drawSat(Graphics g)
         {
@@ -1395,6 +1456,73 @@ namespace key_of_shadows
             {
                 g.DrawImage(Fireball[i].Charge[Fireball[i].IF], Fireball[i].X - BStartX, Fireball[i].Y - BStartY);
             }
+        }
+        void DrawKey(Graphics g)
+        {
+            for (int i = 0; i < Key.Count; i++)
+            {
+                if (Key[i].cf == 1)
+                {
+                    if (i == 0)
+                    {
+                        g.DrawImage(Key[i].img, Key[i].x, Key[i].y);
+                    }
+                    else
+                    {
+                        g.DrawImage(Key[i].img, Key[i].x - BStartX, Key[i].y - BStartY);
+                    }
+                }
+            }
+        }
+        void DrawHealers(Graphics g)
+        {
+            for (int i = 0; i < Healers.Count; i++)
+            {
+                g.DrawImage(Healers[i].img, Healers[i].x - BStartX, Healers[i].y - BStartY);
+            }
+        }
+
+        void DrawStartMenu(Graphics g)
+        {
+            if (Fstate == 0)
+            {
+                Rectangle rcDst = new Rectangle(0, 0, ClientSize.Width, ClientSize.Height);
+                Rectangle rcSrc = new Rectangle(0, 0, Start[Start[0].cf].img.Width, Start[Start[0].cf].img.Height);
+                g.DrawImage(Start[Start[0].cf].img, rcDst, rcSrc, GraphicsUnit.Pixel);
+            }
+        }
+        void CreateStartMenu()
+        {
+            tiles pnn = new tiles();
+            pnn.img = new Bitmap("11.png");
+            Start.Add(pnn);
+
+            pnn = new tiles();
+            pnn.img = new Bitmap("22.png");
+            Start.Add(pnn);
+        }
+        void CreateHealers()
+        {
+            tiles pnn = new tiles();
+            pnn.img = new Bitmap("healer.png");
+            pnn.x = tables[2].x + tables[2].img.Width / 2 - pnn.img.Width - 30;
+            pnn.y = tables[2].y - 10;
+            Healers.Add(pnn);
+        }
+        void CreateKey()
+        {
+            tiles pnn = new tiles();
+            pnn.img = new Bitmap("4.png");
+            pnn.x = ClientSize.Width - pnn.img.Width - 30;
+            pnn.y = 20;
+            Key.Add(pnn);
+
+            pnn = new tiles();
+            pnn.img = new Bitmap("5.png");
+            pnn.x = tables[2].x + tables[2].img.Width - pnn.img.Width - 30;
+            pnn.y = tables[2].y + 20;
+            pnn.cf = 1;
+            Key.Add(pnn);
         }
         void Createground()
         {
@@ -1819,11 +1947,11 @@ namespace key_of_shadows
         {
             for (int i = 0; i < walls.Count; i++)
             {
-                if (Hero.X + Hero.Idler[0].Width + 45 > walls[i].x && Hero.X < walls[i].x && Hero.Y >= walls[i].y && Hero.Y < walls[i].y + walls[i].img.Height  && Direction == "d")
+                if (Hero.X + Hero.Idler[0].Width + 45 > walls[i].x && Hero.X < walls[i].x && Hero.Y >= walls[i].y && Hero.Y < walls[i].y + walls[i].img.Height && Direction == "d")
                 {
                     return false;
                 }
-                else if (Hero.X - 130 < walls[i].x && Hero.X > walls[i].x  && Hero.Y >= walls[i].y  && Hero.Y < walls[i].y + walls[i].img.Height && Direction == "a")
+                else if (Hero.X - 130 < walls[i].x + walls[i].img.Width && Hero.X > walls[i].x && Hero.Y >= walls[i].y && Hero.Y < walls[i].y + walls[i].img.Height && Direction == "a")
                 {
                     return false;
                 }
@@ -1834,11 +1962,11 @@ namespace key_of_shadows
         {
             for (int i = 0; i < tables.Count; i++)
             {
-                if (Hero.X + Hero.Idler[0].Width + 45 > tables[i].x && Hero.X < tables[i].x && Hero.Y >= tables[i].y && Hero.Y < tables[i].y + tables[i].img.Height && Direction == "d")
+                if (Hero.X + Hero.Idler[0].Width + 50 > tables[i].x && Hero.X < tables[i].x && Hero.Y + 200 >= tables[i].y && Hero.Y < tables[i].y + tables[i].img.Height && Direction == "d")
                 {
                     return false;
                 }
-                else if (Hero.X - 130 < tables[i].x && Hero.X > tables[i].x && Hero.Y >= tables[i].y && Hero.Y < tables[i].y + walls[i].img.Height && Direction == "a")
+                else if (Hero.X - 70 < tables[i].x + tables[i].img.Width && Hero.X > tables[i].x && Hero.Y + 200 >= tables[i].y && Hero.Y < tables[i].y + tables[i].img.Height && Direction == "a")
                 {
                     return false;
                 }
@@ -1937,5 +2065,5 @@ namespace key_of_shadows
             if (BStartY > Background.Img.Height - ClientSize.Height) BStartY = Background.Img.Height - ClientSize.Height;
         }
     }
-    
+
 }
