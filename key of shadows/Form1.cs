@@ -85,7 +85,6 @@ namespace key_of_shadows
     }
     public partial class Form1 : Form
     {
-        bool iscilimbing = false;
         bool LaserOn = false;
         bool isAttack = false;
         Bitmap off;
@@ -1000,17 +999,11 @@ namespace key_of_shadows
                 if (Hero.X > Ladder[i].X && Hero.X + Hero.Idler[0].Width < Ladder[i].X + Ladder[i].Img.Width && Hero.Y + Hero.Idler[0].Height > Ladder[i].Y - 30 && Hero.Y + Hero.Idler[0].Height < Ladder[i].Y + Ladder[i].Img.Height && Direction == "u" && Hero.State != 1 && Hero.State != 2)
                 {
                     Hero.X = Ladder[i].X + Ladder[i].Img.Width / 2 - Hero.Idler[0].Width / 2;
-                        Hero.Y -= Speed;
-                                            if (!iscilimbing)
-                        {
-                            Hero.floor++;
-                            iscilimbing = true;
-                        }
+                    Hero.Y -= Speed;
                     if (Hero.Y < Ladder[i].Y)
                     {
                         Hero.Y = floor[Ladder[i].floor].y - floor[Ladder[i].floor].h - Hero.Idler[0].Height;
                         Hero.State = 0;
-                        iscilimbing = false;
                         return false;
                     }
                     return true;
@@ -1022,11 +1015,6 @@ namespace key_of_shadows
                     
                     if (Hero.Y + Hero.Idler[0].Height > Ladder[i].Y + Ladder[i].Img.Height - 70)
                     {
-                        if (iscilimbing)
-                        {
-                            Hero.floor--;
-                            iscilimbing = false;
-                        }
                         Hero.Y = floor[Ladder[i].floor + 1].y - floor[Ladder[i].floor + 1].h - Hero.Idler[0].Height;
                         Hero.State = 0;
                         return false;
@@ -1625,7 +1613,7 @@ namespace key_of_shadows
             }
             Fa7l.xadd = new int[] { 0, 0, 0, -8, -21, -27, 0, 0, 0, 0 };
             Fa7l.X = 1150;
-            Fa7l.Y = floor[4].y - Fa7l.Idler[2].Height - 40;
+            Fa7l.Y = floor[0].y - Fa7l.Idler[2].Height - 40;
             Fa7l.State = 0;
             Fa7l.Health = 11;
             Fa7l.Startpoint = 900;
@@ -1722,7 +1710,7 @@ namespace key_of_shadows
             Skespe.Speed = 15;
             Skespe.RecoveryDuration = 10;
             Skespe.HurtStunDuration = 5;
-            Skespe.floor = 1;
+            Skespe.floor = 3;
         }
         void createdemon()
         {
@@ -1752,7 +1740,7 @@ namespace key_of_shadows
             Demon.Speed = 14;
             Demon.RecoveryDuration = 15;
             Demon.HurtStunDuration = 4;
-            Demon.floor = 0;
+            Demon.floor = 4;
         }
         void CreateSat()
         {
@@ -1770,7 +1758,7 @@ namespace key_of_shadows
                 if (i <= 4) { Sat.Hurtl.Add(new Bitmap("sat\\satL\\hurt\\sathurt" + i + "_result.png")); }
             }
             Sat.X = 2800;
-            Sat.Y = floor[2].y - Sat.Idler[0].Height - 30;
+            Sat.Y = floor[1].y - Sat.Idler[0].Height - 30;
             Sat.State = 0;
             Sat.Health = 35;
             Sat.Startpoint = 2800;
@@ -1782,7 +1770,7 @@ namespace key_of_shadows
             Sat.Speed = 8;
             Sat.RecoveryDuration = 45;
             Sat.HurtStunDuration = 6;
-            Sat.floor = 2;
+            Sat.floor = 1;
         }
         bool CheckWalls(string Direction)
         {
@@ -1866,12 +1854,18 @@ namespace key_of_shadows
                 for (int i = 0; i < floor.Count; i++)
                 {
                     if (Hero.Y + Hero.Idler[0].Height + 10 > floor[i].y - floor[i].h && Hero.Y + Hero.Idler[0].Height < floor[i].y)
-                    { 
+                    {
+                        Hero.floor = i;
                         return false;
                     }
                 }
+                Hero.floor = -1;
                 Hero.Y += 25;
-            } 
+            }
+            else if (Hero.State == 9)
+            {
+                Hero.floor = -1;
+            }
             return true;
         }
         void CheckBorders()
