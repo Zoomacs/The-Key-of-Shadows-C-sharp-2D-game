@@ -21,12 +21,12 @@ namespace key_of_shadows
         public bool State;
         public Bitmap Img;
     }
-    class tiles
+    class Tile
     {
         public int x, y, w, h;
         public int cf = 0;
         public Bitmap img;
-        public List<Bitmap> imgs;
+        public List<Bitmap> imgs = new List<Bitmap>();
     }
 
     class ball
@@ -83,6 +83,22 @@ namespace key_of_shadows
         public int[] xadd;
         public int floor;
     }
+
+    class MiniGame
+    {
+        public Bitmap Background;
+        public int ystart;
+        public int ystart2;
+        public Tile Rocket = new Tile();
+        public int Damage;
+        public int Health = 5;
+        public Bitmap Heart;
+        public List<Tile> Bullets = new List<Tile>();
+        public List<Tile> Chickens = new List<Tile>();
+        public List<Tile> Eggs = new List<Tile>();
+
+    }
+
     public partial class Form1 : Form
     {
         bool LaserOn = false;
@@ -98,18 +114,19 @@ namespace key_of_shadows
         CActor Sat = new CActor();
         List<CActor> Ladder = new List<CActor>();
         List<ball> Fireball = new List<ball>();
-        List<tiles> floor = new List<tiles>();
-        List<tiles> walls = new List<tiles>();
-        List<tiles> portals = new List<tiles>();
-        List<tiles> tables = new List<tiles>();
-        List<tiles> Key = new List<tiles>();
-        List<tiles> Healers = new List<tiles>();
-        List<tiles> Start = new List<tiles>();
+        List<Tile> floor = new List<Tile>();
+        List<Tile> walls = new List<Tile>();
+        List<Tile> portals = new List<Tile>();
+        List<Tile> tables = new List<Tile>();
+        List<Tile> Key = new List<Tile>();
+        List<Tile> Healers = new List<Tile>();
+        List<Tile> Start = new List<Tile>();
         HealthBar H = new HealthBar();
         Elevator Elevator = new Elevator();
         CActor Background = new CActor();
+        MiniGame Game = new MiniGame();
         int BStartX, BStartY;
-        int Fstate;
+        int Fstate = 0;
         bool keyW;
         bool keyW2;
         bool keyA;
@@ -118,6 +135,7 @@ namespace key_of_shadows
         bool keyE;
         int ctJump, JumpLimit = 4;
         int Speed = 50;
+        int ctEgg;
         int skespestate;
         bool skespestatechange = false;
         int DemonflyCounter = 0;
@@ -134,7 +152,7 @@ namespace key_of_shadows
             Paint += Form1_Paint;
             Load += Form1_Load;
             BackColor = Color.Black;
-            tt.Tick += Tt_Tick; ;
+            tt.Tick += Tt_Tick;
             tt.Interval = 100;
             tt.Start();
         }
@@ -172,6 +190,18 @@ namespace key_of_shadows
             DrawDubb(CreateGraphics());
             CheckHeroHealth();
             MoveElevator();
+            if (Fstate == 2)
+            {
+                MoveRocket();
+                MoveChickens();
+                MoveEggs();
+                if (ctEgg == 40)
+                {
+                    CreateEgg();
+                    ctEgg = 0;
+                }
+                ctEgg++;
+            }
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -195,6 +225,7 @@ namespace key_of_shadows
             CreateKey();
             CreateHealers();
             CreateStartMenu();
+            CreateMiniGame();
         }
 
         private void Form1_Paint(object sender, PaintEventArgs e)
@@ -204,93 +235,114 @@ namespace key_of_shadows
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.W && CheckLadder("u"))
+            if (Fstate == 1)
             {
-                keyW = true;
-                Hero.State = 9;
-            }
-            else if (e.KeyCode == Keys.S && CheckLadder("d"))
-            {
-                keyS = true;
-                Hero.State = 9;
-
-            }
-            else if (Hero.State == 0 || Hero.State == 1 || Hero.State == 2)
-            {
-                if (e.KeyCode == Keys.A || e.KeyCode == Keys.D)
+                if (e.KeyCode == Keys.W && CheckLadder("u"))
                 {
-                    if (Hero.State != 1 && Hero.State != 2)
-                    {
-                        Hero.IF = 0;
-                        Hero.State = 1;
-                    }
+                    keyW = true;
+                    Hero.State = 9;
+                }
+                else if (e.KeyCode == Keys.S && CheckLadder("d"))
+                {
+                    keyS = true;
+                    Hero.State = 9;
 
-                    if (e.KeyCode == Keys.A)
+                }
+                else if (Hero.State == 0 || Hero.State == 1 || Hero.State == 2)
+                {
+                    if (e.KeyCode == Keys.A || e.KeyCode == Keys.D)
                     {
-                        keyA = true;
-                        Hero.D = -1;
-                    }
-
-                    if (e.KeyCode == Keys.D)
-                    {
-                        keyD = true;
-                        Hero.D = 1;
-                    }
-
-                    if (Hero.State == 0 || Hero.State == 1)
-                    {
-                        Hero.IF++;
-                        if (Hero.IF >= 8)
+                        if (Hero.State != 1 && Hero.State != 2)
                         {
                             Hero.IF = 0;
+                            Hero.State = 1;
+                        }
+
+                        if (e.KeyCode == Keys.A)
+                        {
+                            keyA = true;
+                            Hero.D = -1;
+                        }
+
+                        if (e.KeyCode == Keys.D)
+                        {
+                            keyD = true;
+                            Hero.D = 1;
+                        }
+
+                        if (Hero.State == 0 || Hero.State == 1)
+                        {
+                            Hero.IF++;
+                            if (Hero.IF >= 8)
+                            {
+                                Hero.IF = 0;
+                            }
                         }
                     }
-                }
 
-                else if (e.KeyCode == Keys.W)
-                {
-                    if (Hero.State != 2)
+                    else if (e.KeyCode == Keys.W)
                     {
-                        Hero.IF = 0;
-                        Hero.State = 2;
+                        if (Hero.State != 2)
+                        {
+                            Hero.IF = 0;
+                            Hero.State = 2;
+                        }
+                        else if (!Hero.JState)
+                        {
+                            keyW2 = true;
+                            Hero.JState = true;
+                        }
+
                     }
-                    else if (!Hero.JState)
+                    if (e.KeyCode == Keys.E && CheckKey())
                     {
-                        keyW2 = true;
-                        Hero.JState = true;
+                        Key[0].cf = 1;
+                        Key[1].cf = 0;
                     }
-
-                }
-                if (e.KeyCode == Keys.E && CheckKey())
-                {
-                    Key[0].cf = 1;
-                    Key[1].cf = 0;
-                }
-                else if (e.KeyCode == Keys.E && CheckHealers())
-                {
-                    Hero.Health += 12;
-                    if (Hero.Health > 100)
+                    else if (e.KeyCode == Keys.E && CheckHealers())
                     {
-                        Hero.Health = 100;
+                        Hero.Health += 12;
+                        if (Hero.Health > 100)
+                        {
+                            Hero.Health = 100;
+                        }
+                    }
+                    else if (e.KeyCode == Keys.E)
+                    {
+                        keyE = true;
+                        TryTeleport();
+                    }
+
+                    if (e.KeyCode == Keys.R)
+                    {
+                        isAttack = true;
+                        Hero.State = 6;
+                    }
+
+                    if (e.KeyCode == Keys.F)
+                    {
+                        createsinglefireball(Hero);
+                    }
+                    if (e.KeyCode == Keys.X && Fstate == 1)
+                    {
+                        Fstate = 2;
                     }
                 }
-                else if (e.KeyCode == Keys.E)
+            }
+            else if (Fstate == 2)
+            {
+                if (e.KeyCode == Keys.Escape)
                 {
-                    keyE = true;
-                    TryTeleport();
+                    Fstate = 1;
                 }
-
-                if (e.KeyCode == Keys.R)
+                if (e.KeyCode == Keys.D)
                 {
-                    isAttack = true;
-                    Hero.State = 6;
+                    keyD = true;
                 }
-
-                if (e.KeyCode == Keys.F)
+                if (e.KeyCode == Keys.A)
                 {
-                    createsinglefireball(Hero);
+                    keyA = true;
                 }
-
             }
         }
         private void Form1_KeyUp(object sender, KeyEventArgs e)
@@ -310,20 +362,27 @@ namespace key_of_shadows
 
         private void Form1_MouseDown(object sender, MouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Left)
+            if (Fstate == 1)
             {
-                isAttack = true;
-                Hero.State = 5;
-                Hero.IF = 0;
+                if (e.Button == MouseButtons.Left)
+                {
+                    isAttack = true;
+                    Hero.State = 5;
+                    Hero.IF = 0;
+                }
+                if (e.Button == MouseButtons.Right)
+                {
+                    isAttack = true;
+                    LaserOn = true;
+                    Hero.State = 7;
+                    Hero.IF = 0;
+                }
             }
-            if (e.Button == MouseButtons.Right)
+            else if (Fstate == 2)
             {
-                isAttack = true;
-                LaserOn = true;
-                Hero.State = 7;
-                Hero.IF = 0;
+                CreateRocketBullet();
             }
-            if (Start[0].cf == 1)
+            if (Start[0].cf == 1 && Fstate == 0)
             {
                 Fstate = 1;
             }
@@ -385,6 +444,21 @@ namespace key_of_shadows
                 Actor.sinbullet = true;
             }
 
+        }
+
+        void MoveRocket()
+        {
+            if (Fstate == 2)
+            {
+                if (keyD)
+                {
+                    Game.Rocket.x += 50;
+                }
+                else if (keyA)
+                {
+                    Game.Rocket.x -= 50;
+                }
+            }
         }
         void ManageHeroMove()
         {
@@ -1118,6 +1192,12 @@ namespace key_of_shadows
             DrawKey(g2);
             DrawHealers(g2);
             DrawStartMenu(g2);
+            if (Fstate == 2)
+            {
+                DrawMiniGame(g2);
+                DrawChickens(g2);
+                DrawEggs(g2);
+            }
         }
         void Drawbackground(Graphics g)
         {
@@ -1131,7 +1211,7 @@ namespace key_of_shadows
             Pen pn = new Pen(Color.Yellow, 2);
             for (int i = 0; i < 5; i++)
             {
-                tiles ptrv = floor[i];
+                Tile ptrv = floor[i];
                 //g.DrawRectangle(pn, ptrv.x - BStartX, ptrv.y - BStartY, ptrv.w, ptrv.h);
             }
         }
@@ -1140,7 +1220,7 @@ namespace key_of_shadows
             Pen pn = new Pen(Color.Yellow, 2);
             for (int i = 0; i < 5; i++)
             {
-                tiles ptrv = walls[i];
+                Tile ptrv = walls[i];
                 // g.DrawRectangle(pn, ptrv.x - BStartX, ptrv.y - BStartY, ptrv.img.Width, ptrv.img.Height);
                 g.DrawImage(ptrv.img, ptrv.x - BStartX, ptrv.y - BStartY);
             }
@@ -1150,7 +1230,7 @@ namespace key_of_shadows
             Pen pn = new Pen(Color.Yellow, 2);
             for (int i = 0; i < tables.Count; i++)
             {
-                tiles ptrv = tables[i];
+                Tile ptrv = tables[i];
                 // g.DrawRectangle(pn, ptrv.x - BStartX, ptrv.y - BStartY, ptrv.img.Width, ptrv.img.Height);
                 g.DrawImage(ptrv.img, ptrv.x - BStartX, ptrv.y - BStartY);
             }
@@ -1491,19 +1571,226 @@ namespace key_of_shadows
                 g.DrawImage(Start[Start[0].cf].img, rcDst, rcSrc, GraphicsUnit.Pixel);
             }
         }
+
+        void DrawMiniGame(Graphics g)
+        {
+            if (Fstate == 2)
+            {
+                Rectangle rsrc = new Rectangle(0, 0, Game.Background.Width, Game.Background.Height);
+                Rectangle rdist = new Rectangle(0, Game.ystart, ClientSize.Width, ClientSize.Height);
+                Rectangle rdist2 = new Rectangle(0, Game.ystart2, ClientSize.Width, ClientSize.Height);
+
+                g.DrawImage(Game.Background, rdist, rsrc, GraphicsUnit.Pixel);
+                g.DrawImage(Game.Background, rdist2, rsrc, GraphicsUnit.Pixel);
+                Game.ystart += 50;
+                Game.ystart2 += 50;
+
+                if (Game.ystart >= ClientSize.Height)
+                {
+                    Game.ystart = Game.ystart2 - ClientSize.Height;
+                }
+                if (Game.ystart2 >= ClientSize.Height)
+                {
+                    Game.ystart2 = Game.ystart - ClientSize.Height;
+                }
+                DrawRocketBullet(g);
+                g.DrawImage(Game.Rocket.img, Game.Rocket.x, Game.Rocket.y);
+                SolidBrush b = new SolidBrush(Color.White);
+                Font f = new Font("Comic Sans MS", 18, FontStyle.Bold);
+                g.DrawString(Game.Health.ToString(), f, b, 60, 20);
+                g.DrawImage(Game.Heart, 20, 20);
+
+            }
+        }
+
+        void DrawRocketBullet(Graphics g)
+        {
+            for (int i = 0; i < Game.Bullets.Count; i++)
+            {
+                g.DrawImage(Game.Bullets[i].imgs[Game.Rocket.cf], Game.Bullets[i].x, Game.Bullets[i].y);
+                Game.Bullets[i].y -= 30;
+            }
+        }
+
+        void DrawChickens(Graphics g)
+        {
+            for (int i = 0; i < Game.Chickens.Count; i++)
+            {
+                g.DrawImage(Game.Chickens[i].imgs[Game.Chickens[i].cf], Game.Chickens[i].x, Game.Chickens[i].y);
+                Game.Chickens[i].cf = (Game.Chickens[i].cf + 1) % 2;
+                if (Game.Chickens[i].cf == 0)
+                {
+                    Game.Chickens[i].y += 4;
+                }
+                else
+                {
+                    Game.Chickens[i].y -= 4;
+                }
+            }
+        }
+
+        void DrawEggs(Graphics g)
+        {
+            for (int i = 0; i < Game.Eggs.Count; i++)
+            {
+                Tile pt = Game.Eggs[i];
+                g.DrawImage(pt.img, pt.x, pt.y);
+            }
+        }
+        void MoveEggs()
+        {
+            for (int i = 0; i < Game.Eggs.Count; i++)
+            {
+                Tile pt = Game.Eggs[i];
+                pt.y += 30;
+            }
+            isRocketHit();
+        }
+        void isRocketHit()
+        {
+            for (int j = 0; j < Game.Eggs.Count; j++)
+            {
+                Tile pt = Game.Eggs[j];
+                if (pt.y > Game.Rocket.y && pt.x > Game.Rocket.x && pt.x < Game.Rocket.x + Game.Rocket.img.Width)
+                {
+                    Game.Eggs.Remove(pt);
+                    Game.Health--;
+                }
+            }
+            if (Game.Health == 0)
+            {
+                Fstate = 1;
+            }
+        }
+        void CreateEgg()
+        {
+            Random r = new Random();
+            for (int i = 0; i < Game.Chickens.Count; i++)
+            {
+                Tile pt = Game.Chickens[i];
+                if (r.Next(0, 4) == 1)
+                {
+                    Tile pnn = new Tile();
+                    pnn.img = new Bitmap("minigame\\egg.png");
+                    pnn.x = pt.x + pt.imgs[0].Width / 2 - pnn.img.Width / 2;
+                    pnn.y = pt.y + pt.imgs[0].Height;
+                    Game.Eggs.Add(pnn);
+                }
+            }
+        }
+        void MoveChickens()
+        {
+            for (int i = 0; i < Game.Chickens.Count; i++)
+            {
+                Tile pt = Game.Chickens[i];
+                if (pt.w == 0)
+                {
+                    if (pt.x < ClientSize.Width * 7 / 8 && i == 0)
+                    {
+                        pt.x += 80;
+                    }
+                    else if (i != 0)
+                    {
+                        if (pt.x < Game.Chickens[i - 1].x - 200)
+                        {
+                            pt.x += 80;
+                        }
+                        else if (pt.h != Game.Chickens[i - 1].h && pt.x < ClientSize.Width * 7 / 8)
+                        {
+                            pt.x += 80;
+                        }
+                        else
+                        {
+                            pt.w = 1;
+                        }
+                    }
+                }
+            }
+            isChickenHit();
+        }
+
+        void isChickenHit()
+        {
+            for (int i = 0; i < Game.Chickens.Count; i++)
+            {
+                Tile pt = Game.Chickens[i];
+                for (int j = 0; j < Game.Bullets.Count; j++)
+                {
+                    Tile pt2 = Game.Bullets[j];
+                    if (pt2.y < pt.y + pt.imgs[0].Height && pt2.y + pt2.imgs[0].Height > pt.y + pt.imgs[0].Height && pt2.x > pt.x && pt2.x < pt.x + pt.imgs[0].Width)
+                    {
+                        Game.Chickens.Remove(pt);
+                        Game.Bullets.Remove(pt2);
+                    }
+                }
+            }
+        }
+
+        void CreateChickens()
+        {
+            int x = -150, y = 50;
+            Random r = new Random();
+            for (int i = 0; i < 30; i++)
+            {
+                Tile pnn = new Tile();
+                pnn.imgs.Add(new Bitmap("minigame\\c1.png"));
+                pnn.imgs.Add(new Bitmap("minigame\\c2.png"));
+                pnn.x = x;
+                pnn.y = y;
+                pnn.cf = r.Next(0, 2);
+                Game.Chickens.Add(pnn);
+                x -= pnn.imgs[0].Width + 50;
+
+                if (i > 9 && i < 20)
+                {
+                    pnn.h = 1;
+                }
+                else
+                {
+                    pnn.h = 2;
+                }
+                if (i == 9 || i == 19)
+                {
+                    y += 150;
+                    x = -150;
+                }
+            }
+        }
+
+        void CreateRocketBullet()
+        {
+            Tile pnn = new Tile();
+            pnn.imgs.Add(new Bitmap("minigame\\bullet1.png"));
+            pnn.imgs.Add(new Bitmap("minigame\\bullet2.png"));
+            pnn.x = Game.Rocket.x + Game.Rocket.img.Width / 2 - pnn.imgs[0].Width / 2;
+            pnn.y = Game.Rocket.y;
+            Game.Bullets.Add(pnn);
+        }
+
+        void CreateMiniGame()
+        {
+            Game.Background = new Bitmap("minigame\\bg.png");
+            Game.Rocket.img = new Bitmap("minigame\\rocket.png");
+            Game.Rocket.y = ClientSize.Height - Game.Rocket.img.Height - 50;
+            Game.Rocket.x = ClientSize.Width / 2 - Game.Rocket.img.Width / 2;
+
+            Game.ystart2 = Game.ystart - ClientSize.Height;
+            CreateChickens();
+            Game.Heart = new Bitmap("minigame\\heart.png");
+        }
         void CreateStartMenu()
         {
-            tiles pnn = new tiles();
+            Tile pnn = new Tile();
             pnn.img = new Bitmap("11.png");
             Start.Add(pnn);
 
-            pnn = new tiles();
+            pnn = new Tile();
             pnn.img = new Bitmap("22.png");
             Start.Add(pnn);
         }
         void CreateHealers()
         {
-            tiles pnn = new tiles();
+            Tile pnn = new Tile();
             pnn.img = new Bitmap("healer.png");
             pnn.x = tables[2].x + tables[2].img.Width / 2 - pnn.img.Width - 30;
             pnn.y = tables[2].y - 10;
@@ -1511,13 +1798,13 @@ namespace key_of_shadows
         }
         void CreateKey()
         {
-            tiles pnn = new tiles();
+            Tile pnn = new Tile();
             pnn.img = new Bitmap("4.png");
             pnn.x = ClientSize.Width - pnn.img.Width - 30;
             pnn.y = 20;
             Key.Add(pnn);
 
-            pnn = new tiles();
+            pnn = new Tile();
             pnn.img = new Bitmap("5.png");
             pnn.x = tables[2].x + tables[2].img.Width - pnn.img.Width - 30;
             pnn.y = tables[2].y + 20;
@@ -1535,7 +1822,7 @@ namespace key_of_shadows
             int floory = 450, yadd = 0;
             for (int i = 0; i < 5; i++)
             {
-                tiles pnn = new tiles();
+                Tile pnn = new Tile();
                 pnn.x = 0;
                 pnn.y = floory + yadd;
                 yadd += 436 + 21;
@@ -1546,27 +1833,27 @@ namespace key_of_shadows
         }
         void Createwall()
         {
-            tiles pnn = new tiles();
+            Tile pnn = new Tile();
             pnn.x = 2280;
             pnn.y = 1857;
             pnn.img = new Bitmap("pillars\\p51.png");
             walls.Add(pnn);
-            pnn = new tiles();
+            pnn = new Tile();
             pnn.x = 1560;
             pnn.y = 1390;
             pnn.img = new Bitmap("pillars\\p411.png");
             walls.Add(pnn);
-            pnn = new tiles();
+            pnn = new Tile();
             pnn.x = 840;
             pnn.y = 935;
             pnn.img = new Bitmap("pillars\\p3.png");
             walls.Add(pnn);
-            pnn = new tiles();
+            pnn = new Tile();
             pnn.x = 2630;
             pnn.y = 938;
             pnn.img = new Bitmap("pillars\\p31.png");
             walls.Add(pnn);
-            pnn = new tiles();
+            pnn = new Tile();
             pnn.x = 1830;
             pnn.y = 478;
             pnn.img = new Bitmap("pillars\\p21.png");
@@ -1574,27 +1861,27 @@ namespace key_of_shadows
         }
         void createtable()
         {
-            tiles pnn = new tiles();
+            Tile pnn = new Tile();
             pnn.img = new Bitmap("Tables\\table-2.png");
             pnn.x = 1830 - pnn.img.Width - 30;
             pnn.y = floor[1].y - pnn.img.Height;
             tables.Add(pnn);
-            pnn = new tiles();
+            pnn = new Tile();
             pnn.img = new Bitmap("Tables\\table-2.png");
             pnn.x = 840 + walls[2].img.Width + 30;
             pnn.y = floor[1].y - pnn.img.Height;
             tables.Add(pnn);
-            pnn = new tiles();
+            pnn = new Tile();
             pnn.img = new Bitmap("Tables\\table-5.png");
             pnn.x = 30;
             pnn.y = floor[3].y - pnn.img.Height;
             tables.Add(pnn);
-            pnn = new tiles();
+            pnn = new Tile();
             pnn.img = new Bitmap("Tables\\table-3.png");
             pnn.x = 840 - pnn.img.Width - 30;
             pnn.y = floor[2].y - pnn.img.Height;
             tables.Add(pnn);
-            pnn = new tiles();
+            pnn = new Tile();
             pnn.img = new Bitmap("Tables\\table-3.png");
             pnn.x = 840 + walls[2].img.Width + 30;
             pnn.y = floor[2].y - pnn.img.Height;
@@ -1648,7 +1935,7 @@ namespace key_of_shadows
             Ladder.Add(pnn);
 
         }
-        bool CheckPortalRegion(tiles portal)
+        bool CheckPortalRegion(Tile portal)
         {
             int heroLeft = Hero.X;
             int heroRight = Hero.X + Hero.Idler[0].Width;
@@ -1665,7 +1952,7 @@ namespace key_of_shadows
         {
             for (int i = 0; i < portals.Count; i++)
             {
-                tiles p = portals[i];
+                Tile p = portals[i];
                 bool heroInside = CheckPortalRegion(p);
 
                 if (heroInside)
@@ -1684,7 +1971,7 @@ namespace key_of_shadows
         {
             for (int i = 0; i < portals.Count; i++)
             {
-                tiles p = portals[i];
+                Tile p = portals[i];
                 if (p.cf == p.imgs.Count - 1 && CheckPortalRegion(p))
                 {
                     int dest;
@@ -1697,7 +1984,7 @@ namespace key_of_shadows
                     {
                         dest = 0;
                     }
-                    tiles target = portals[dest];
+                    Tile target = portals[dest];
 
                     Hero.X = target.x + target.imgs[0].Width / 2 - Hero.Idler[0].Width / 2;
                     Hero.Y = target.y + target.imgs[0].Height - Hero.Idler[0].Height;
@@ -1715,7 +2002,7 @@ namespace key_of_shadows
         }
         void createportals()
         {
-            tiles pnn = new tiles();
+            Tile pnn = new Tile();
             pnn.imgs = new List<Bitmap>();
             for (int i = 1; i < 6; i++)
             {
@@ -1725,7 +2012,7 @@ namespace key_of_shadows
             pnn.y = floor[4].y - floor[3].h - pnn.imgs[0].Height + 25;
             pnn.cf = 0;
             portals.Add(pnn);
-            pnn = new tiles();
+            pnn = new Tile();
             pnn.imgs = new List<Bitmap>();
             for (int i = 1; i < 6; i++)
             {
