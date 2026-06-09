@@ -110,6 +110,7 @@ namespace key_of_shadows
         bool LaserOn = false;
         bool isAttack = false;
         Bitmap off;
+        Tile Door = new Tile();
         Timer tt = new Timer();
         CActor Hero = new CActor();
         CActor Fa7l = new CActor();
@@ -239,6 +240,7 @@ namespace key_of_shadows
             CreateKey();
             CreateHealers();
             CreateStartMenu();
+            createdoor();
             CreateMiniGame();
         }
 
@@ -1450,7 +1452,14 @@ namespace key_of_shadows
             }
             return false;
         }
-
+        bool WinCondition()
+        {
+            if (Hero.X + Hero.Idler[0].Width > Door.x && Hero.X < Door.x + Door.img.Width && Hero.Y + Hero.Idler[0].Height > Door.y && Hero.Y < Door.y + Door.img.Height && keyE && Key[0].cf == 1)
+            {
+                return true;
+            }
+            return false;
+        }
         void DrawDubb(Graphics g)
         {
             Graphics g2 = Graphics.FromImage(off);
@@ -1467,6 +1476,7 @@ namespace key_of_shadows
             Drawladder(g2);
             drawportals(g2);
             drawfireball(g2);
+            drawdoor(g2);
             drawhero(g2);
             drawfa7l(g2);
             DrawDemon(g2);
@@ -1482,6 +1492,18 @@ namespace key_of_shadows
             DrawHealers(g2);
             DrawStartMenu(g2);
             drawlaser(g2);
+            if (WinCondition())
+            {
+                g2.Clear(Color.Black);
+                Font winFont = new Font("Impact", 72, FontStyle.Bold);
+                SolidBrush textBrush = new SolidBrush(Color.Gold);
+                string winText = "YOU WIN !";
+                Size textSize = TextRenderer.MeasureText(winText, winFont);
+                int centerX = (ClientSize.Width - textSize.Width) / 2;
+                int centerY = (ClientSize.Height - textSize.Height) / 2;
+                g2.DrawString(winText, winFont, textBrush, centerX, centerY);
+
+            }
             if (Fstate == 2)
             {
                 DrawMiniGame(g2);
@@ -2641,6 +2663,16 @@ namespace key_of_shadows
             if (BStartY < 0) BStartY = 0;
             if (BStartX > Background.Img.Width - ClientSize.Width) BStartX = Background.Img.Width - ClientSize.Width;
             if (BStartY > Background.Img.Height - ClientSize.Height) BStartY = Background.Img.Height - ClientSize.Height;
+        }
+        void createdoor()
+        {
+            Door.img = new Bitmap("door.png");
+            Door.y = floor[0].y - Door.img.Height;
+            Door.x = 50;
+        }
+        void drawdoor(Graphics g)
+        {
+            g.DrawImage(Door.img, Door.x - BStartX, Door.y - BStartY);
         }
     }
 
