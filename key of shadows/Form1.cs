@@ -7,7 +7,7 @@ namespace key_of_shadows
 {
     public class laser
     {
-        public int X, Y, W, H,  D;
+        public int X, Y, W, H, D;
         public bool held = true;
         public int strmax = 800;
     }
@@ -93,18 +93,22 @@ namespace key_of_shadows
     class MiniGame
     {
         public Bitmap Background;
-        public int ystart;
-        public int ystart2;
+        public int yStart;
+        public int yStart2;
+        public int State;
         public Tile Rocket = new Tile();
-        public int Damage;
-        public int Health = 5;
+        public int RocketHealth = 5;
+        public List<Tile> RocketBullets = new List<Tile>();
+        public Tile Boss = new Tile();
+        public int[] BossMovement = { 35, 35, 35, 35, 35, 35, 35, 35, 15, 15, 15, 15, 55, 55, 55, 55, 55, -35, -35, -35, -35, 55, 55, 55, 55, 55, 55, -15, -15, -15, -15, -55, -55, -55, -55, -55, -55, -55, -55, -35, -35, -35, -35, -35, -35, -35, -35 };
+        public int IM;
+        public int BossHealth = 5;
+        public List<Tile> BossBullets = new List<Tile>();
         public Bitmap Heart;
-        public List<Tile> Bullets = new List<Tile>();
         public List<Tile> Chickens = new List<Tile>();
         public List<Tile> Eggs = new List<Tile>();
 
     }
-
     public partial class Form1 : Form
     {
         bool LaserOn = false;
@@ -127,10 +131,11 @@ namespace key_of_shadows
         List<Tile> tables = new List<Tile>();
         List<Tile> Key = new List<Tile>();
         List<Tile> Healers = new List<Tile>();
+        List<Tile> Ability = new List<Tile>();
         List<Tile> Start = new List<Tile>();
+        List<CActor> Background = new List<CActor>();
         HealthBar H = new HealthBar();
         Elevator Elevator = new Elevator();
-        CActor Background = new CActor();
         MiniGame Game = new MiniGame();
         List<laser> lasers = new List<laser>();
         int BStartX, BStartY;
@@ -143,12 +148,12 @@ namespace key_of_shadows
         bool keyE;
         int ctJump, JumpLimit = 4;
         int Speed = 50;
-        int ctEgg;
+        int ctEgg, ctBoss;
         int skespestate;
         bool skespestatechange = false;
         int DemonflyCounter = 0;
         bool DemonflyDir = false;
-        int DemonBaseY = 0;   
+        int DemonBaseY = 0;
         int DemonState = 0;
         bool DemonAttacked = false;
 
@@ -170,37 +175,48 @@ namespace key_of_shadows
             tt.Start();
         }
 
-
-
         private void Tt_Tick(object sender, EventArgs e)
         {
             ManageHeroMove();
             ManageActorAnimation(Hero);
             RunStunTimer(Hero);
             CheckHeroHit(Hero);
-            ManageActorAnimation(Skewar);
-            Manageenemybehavior(Skewar);
-            CheckEnemyHit(Skewar);
-            CheckHeroHit(Skewar);
-            ManageActorAnimation(Demon);
-            ManageDemonBehavior();
-            CheckEnemyHit(Demon);
-            CheckHeroHit(Demon);
-            ManageActorAnimation(Fa7l);
-            Manageenemybehavior(Fa7l);
-            CheckEnemyHit(Fa7l);
-            CheckHeroHit(Fa7l);
-            ManageActorAnimation(Skespe);
-            ManageActorAnimation(Sat);
-            CheckEnemyHit(Sat);
-            Manageenemybehavior(Sat);
-            CheckEnemyHit(Skespe);
-            CheckHeroHit(Skespe);
+
+            if (Fstate == 1)
+            {
+                ManageActorAnimation(Skewar);
+                Manageenemybehavior(Skewar);
+                CheckEnemyHit(Skewar);
+                CheckHeroHit(Skewar);
+
+                ManageActorAnimation(Demon);
+                ManageDemonBehavior();
+                CheckEnemyHit(Demon);
+                CheckHeroHit(Demon);
+
+                ManageActorAnimation(Fa7l);
+                Manageenemybehavior(Fa7l);
+                CheckEnemyHit(Fa7l);
+                CheckHeroHit(Fa7l);
+
+                ManageActorAnimation(Skespe);
+
+                ManageActorAnimation(Sat);
+                CheckEnemyHit(Sat);
+                Manageenemybehavior(Sat);
+
+                CheckEnemyHit(Skespe);
+                CheckHeroHit(Skespe);
+            }
             CheckGravity();
+
             ManageSkespeBehavior();
             ManageChargeAnimation();
+
             Jump();
+
             manageportalanimation();
+
             DrawDubb(CreateGraphics());
             CheckHeroHealth();
             MoveElevator();
@@ -210,19 +226,30 @@ namespace key_of_shadows
                 MoveRocket();
                 MoveChickens();
                 MoveEggs();
+                if (Game.State == 2)
+                {
+                    MoveBoss();
+                    MoveBossBullets();
+                }
+                if (ctBoss == 10)
+                {
+                    CreateBossBullet();
+                    ctBoss = 0;
+                }
                 if (ctEgg == 40)
                 {
                     CreateEgg();
                     ctEgg = 0;
                 }
                 ctEgg++;
+                ctBoss++;
             }
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
             off = new Bitmap(this.ClientSize.Width, this.ClientSize.Height);
-            Createground();
+            CreateBackground();
             Createfloor();
             createportals();
             Createwall();
@@ -231,7 +258,7 @@ namespace key_of_shadows
             Createskearch();
             createskespe();
             createskewar();
-            createtable();
+            CreateTables();
             createdemon();
             CreateSat();
             createladder();
@@ -242,6 +269,7 @@ namespace key_of_shadows
             CreateStartMenu();
             createdoor();
             CreateMiniGame();
+            CreateAbility();
         }
 
         private void Form1_Paint(object sender, PaintEventArgs e)
@@ -251,7 +279,7 @@ namespace key_of_shadows
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
-            if (Fstate == 1)
+            if (Fstate == 1 || Fstate == 3)
             {
                 if (e.KeyCode == Keys.W && CheckLadder("u"))
                 {
@@ -262,7 +290,6 @@ namespace key_of_shadows
                 {
                     keyS = true;
                     Hero.State = 9;
-
                 }
                 else if (Hero.State == 0 || Hero.State == 1 || Hero.State == 2)
                 {
@@ -308,12 +335,15 @@ namespace key_of_shadows
                             keyW2 = true;
                             Hero.JState = true;
                         }
-
                     }
-                    if (e.KeyCode == Keys.E && CheckKey())
+                    if (e.KeyCode == Keys.E && Fstate == 1 && Game.RocketHealth > 0 && CheckKey())
                     {
-                        Key[0].cf = 1;
-                        Key[1].cf = 0;
+                        Fstate = 2;
+                    }
+                    else if (e.KeyCode == Keys.E && CheckAbility())
+                    {
+                        Ability[0].cf = 1;
+                        Ability[1].cf = 0;
                     }
                     else if (e.KeyCode == Keys.E && CheckHealers())
                     {
@@ -322,6 +352,14 @@ namespace key_of_shadows
                         {
                             Hero.Health = 100;
                         }
+                    }
+                    else if (e.KeyCode == Keys.E && WinCondition())
+                    {
+                        Fstate = 3;
+                        Background[0].IF = 1;
+                        Hero.Y = ClientSize.Height - Hero.Idler[0].Height - 90;
+                        BStartX = 0;
+                        BStartY = 0;
                     }
                     else if (e.KeyCode == Keys.E)
                     {
@@ -338,10 +376,6 @@ namespace key_of_shadows
                     if (e.KeyCode == Keys.F)
                     {
                         createsinglefireball(Hero);
-                    }
-                    if (e.KeyCode == Keys.X && Fstate == 1)
-                    {
-                        Fstate = 2;
                     }
                     if (e.KeyCode == Keys.J && !createlas)
                     {
@@ -366,9 +400,9 @@ namespace key_of_shadows
                 }
             }
         }
-        void drawlaser (Graphics g)
+        void drawlaser(Graphics g)
         {
-            for(int i = 0; i < lasers.Count; i++)
+            for (int i = 0; i < lasers.Count; i++)
             {
                 laser ptrv = lasers[i];
                 Brush br = new SolidBrush(Color.Red);
@@ -377,11 +411,11 @@ namespace key_of_shadows
                 int drawY = ptrv.Y - BStartY;
                 g.FillRectangle(br, drawX, drawY, ptrv.W, 20);
                 g.FillRectangle(br2, drawX, drawY, ptrv.W, 7);
-                g.FillRectangle(br2, drawX, drawY+17, ptrv.W, 3);
+                g.FillRectangle(br2, drawX, drawY + 17, ptrv.W, 3);
             }
-            
+
         }
-        void createlaser ()
+        void createlaser()
         {
             laser pnn = new laser();
             pnn.Y = pnn.Y = Hero.Y + 40;
@@ -424,7 +458,7 @@ namespace key_of_shadows
                     }
                 }
 
-                if (ptrv.X > Background.Img.Width || ptrv.X + ptrv.W < 0)
+                if (ptrv.X > Background[Background[0].IF].Img.Width || ptrv.X + ptrv.W < 0)
                 {
                     destroyLaser = true;
                 }
@@ -475,7 +509,6 @@ namespace key_of_shadows
                         }
                     }
                 }
-
                 if (destroyLaser)
                 {
                     lasers.RemoveAt(i);
@@ -494,12 +527,11 @@ namespace key_of_shadows
             if (e.KeyCode == Keys.S) { keyS = false; }
             if (e.KeyCode == Keys.D) { keyD = false; }
             if (e.KeyCode == Keys.E) { keyE = false; }
-            if(e.KeyCode == Keys.J && lasers.Count > 0)
+            if (e.KeyCode == Keys.J && lasers.Count > 0)
             {
                 lasers[lasers.Count - 1].held = false;
                 createlas = false;
             }
-
         }
 
         private void Form1_MouseDown(object sender, MouseEventArgs e)
@@ -566,7 +598,6 @@ namespace key_of_shadows
                 {
                     pnn.X = Actor.X - Actor.Attack2l[Actor.Attack2l.Count - 1].Width;
                 }
-
                 for (int i = 1; i <= 12; i++)
                 {
                     if (pnn.D == 1)
@@ -585,7 +616,6 @@ namespace key_of_shadows
                 Fireball.Add(pnn);
                 Actor.sinbullet = true;
             }
-
         }
 
         void MoveRocket()
@@ -594,11 +624,11 @@ namespace key_of_shadows
             {
                 if (keyD)
                 {
-                    Game.Rocket.x += 50;
+                    Game.Rocket.x += 60;
                 }
                 else if (keyA)
                 {
-                    Game.Rocket.x -= 50;
+                    Game.Rocket.x -= 60;
                 }
             }
         }
@@ -621,7 +651,7 @@ namespace key_of_shadows
                 {
                     Hero.State = 1;
                 }
-                if (Hero.X + Hero.Idler[0].Width + 50 < Background.Img.Width)
+                if (Hero.X + Hero.Idler[0].Width + 50 < Background[Background[0].IF].Img.Width)
                 {
                     Hero.X += Speed;
                 }
@@ -634,7 +664,6 @@ namespace key_of_shadows
             {
                 Hero.IF++;
             }
-
             CheckBorders();
         }
         void ManageSkespeBehavior()
@@ -713,7 +742,6 @@ namespace key_of_shadows
                     Skespe.X -= Skespe.Speed;
                 }
             }
-
         }
         bool IsWallBetween(CActor enemy)
         {
@@ -792,11 +820,9 @@ namespace key_of_shadows
                             DemonState = 2;
                             Hero.GotHit = false;
                         }
-
                     }
                 }
             }
-
         }
         void RunMoveBehavior(CActor enemy)
         {
@@ -834,7 +860,6 @@ namespace key_of_shadows
 
             }
         }
-       
         void RunDetectBehavior(CActor enemy, int heroWorldX)
         {
             int distance = heroWorldX - enemy.X;
@@ -882,7 +907,6 @@ namespace key_of_shadows
                     TriggerAttack(enemy);
                 }
             }
-
         }
         void TriggerSkeSpeAttack2()
         {
@@ -964,7 +988,7 @@ namespace key_of_shadows
                 if (Actor.IF >= Actor.Deadr.Count)
                 {
                     Actor.IF = Actor.Deadr.Count - 1;
-                    if (Actor == Demon) 
+                    if (Actor == Demon)
                     {
                         Demon.X = 1000000;
                     }
@@ -1094,10 +1118,10 @@ namespace key_of_shadows
                         }
                         if (!Demon.isDead && DemonState == 1 && ptrv.X + ptrv.Charge[ptrv.IF].Width >= Demon.X && ptrv.X < Demon.X + Demon.Idler[0].Width && ptrv.Y + ptrv.Charge[ptrv.IF].Height >= Demon.Y && ptrv.Y < Demon.Y + Demon.Idler[0].Height)
                         {
-                            Demon.Health -= 5;      
+                            Demon.Health -= 5;
                             Demon.GotHit = true;
                             CheckDead(Demon);
-                            hit = true;              
+                            hit = true;
                         }
                         if (!Skespe.isDead && ptrv.X + ptrv.Charge[ptrv.IF].Width >= Skespe.X && ptrv.X < Skespe.X + 50 && ptrv.floor == Skespe.floor)
                         {
@@ -1113,7 +1137,7 @@ namespace key_of_shadows
                             CheckDead(Hero);
                             hit = true;
                         }
-                        if (ptrv.X > Background.Img.Width)
+                        if (ptrv.X > Background[Background[0].IF].Img.Width)
                         {
                             hit = true;
                         }
@@ -1433,7 +1457,7 @@ namespace key_of_shadows
 
         bool CheckKey()
         {
-            if (Hero.Y < Key[1].y && Hero.Y + Hero.Idler[0].Height > Key[1].y && Hero.X > Key[1].x && Hero.X < Key[1].x + 200)
+            if (Hero.Y < Key[1].y && Hero.Y + Hero.Idler[0].Height > Key[1].y && Hero.X < Key[1].x && Hero.X > Key[1].x - 200)
             {
                 return true;
             }
@@ -1444,7 +1468,7 @@ namespace key_of_shadows
         {
             for (int i = 0; i < Healers.Count; i++)
             {
-                if (Hero.Y < Healers[i].y + Healers[i].img.Height && Hero.Y + Hero.Idler[0].Height > Healers[i].y && Hero.X > Healers[i].x && Hero.X < Healers[i].x + 200)
+                if (Hero.Y < Healers[i].y + Healers[i].img.Height && Hero.Y + Hero.Idler[0].Height > Healers[i].y && (Hero.X > Healers[i].x && Hero.X < Healers[i].x + 200 || Hero.X < Healers[i].x && Hero.X > Healers[i].x - 200))
                 {
                     Healers.Remove(Healers[i]);
                     return true;
@@ -1454,7 +1478,7 @@ namespace key_of_shadows
         }
         bool WinCondition()
         {
-            if (Hero.X + Hero.Idler[0].Width > Door.x && Hero.X < Door.x + Door.img.Width && Hero.Y + Hero.Idler[0].Height > Door.y && Hero.Y < Door.y + Door.img.Height && keyE && Key[0].cf == 1)
+            if (Hero.X > Door.x && Hero.X + Hero.Idler[0].Width < Door.x + Door.img.Width && Hero.Y + Hero.Idler[0].Height > Door.y && Hero.Y - 100 < Door.y + Door.img.Height /*&& Key[0].cf == 1*/)
             {
                 return true;
             }
@@ -1468,31 +1492,44 @@ namespace key_of_shadows
         }
         void DrawScene(Graphics g2)
         {
-            BStartX = Hero.X - ClientSize.Width / 2;
-            BStartY = Hero.Y - ClientSize.Height / 2;
+            if (Fstate == 1)
+            {
+                BStartX = Hero.X - ClientSize.Width / 2;
+                BStartY = Hero.Y - ClientSize.Height / 2;
+            }
             g2.Clear(BackColor);
             CheckBorders();
-            Drawbackground(g2);
-            Drawladder(g2);
-            drawportals(g2);
-            drawfireball(g2);
-            drawdoor(g2);
-            drawhero(g2);
-            drawfa7l(g2);
-            DrawDemon(g2);
-            drawSat(g2);
-            drawSkewar(g2);
-            drawSkespe(g2);
-            Drawfloor(g2);
-            Drawwalls(g2);
-            drawtables(g2);
-            DrawElevator(g2);
-            DrawHealthBar(g2);
-            DrawKey(g2);
-            DrawHealers(g2);
-            DrawStartMenu(g2);
-            drawlaser(g2);
-            if (WinCondition())
+            DrawBackground(g2);
+
+
+            if (Fstate == 1)
+            {
+                DrawHealers(g2);
+                drawportals(g2);
+                Drawladder(g2);
+                drawdoor(g2);
+                drawfa7l(g2);
+                DrawDemon(g2);
+                drawSat(g2);
+                drawSkewar(g2);
+                drawSkespe(g2);
+                Drawfloor(g2);
+                Drawwalls(g2);
+                drawtables(g2);
+                DrawElevator(g2);
+                drawlaser(g2);
+            }
+            else if (Fstate == 2)
+            {
+                DrawMiniGame(g2);
+                DrawChickens(g2);
+                DrawEggs(g2);
+                if (Game.State == 2)
+                {
+                    DrawBoss(g2);
+                }
+            }
+            else if (Fstate == 4)
             {
                 g2.Clear(Color.Black);
                 Font winFont = new Font("Impact", 72, FontStyle.Bold);
@@ -1502,20 +1539,27 @@ namespace key_of_shadows
                 int centerX = (ClientSize.Width - textSize.Width) / 2;
                 int centerY = (ClientSize.Height - textSize.Height) / 2;
                 g2.DrawString(winText, winFont, textBrush, centerX, centerY);
-
             }
-            if (Fstate == 2)
+            if (Fstate != 2 && Fstate != 4)
             {
-                DrawMiniGame(g2);
-                DrawChickens(g2);
-                DrawEggs(g2);
+                drawfireball(g2);
+                drawhero(g2);
+                DrawHealthBar(g2);
+                DrawStartMenu(g2);
+                DrawKey(g2);
+                DrawAbility(g2);
             }
         }
-        void Drawbackground(Graphics g)
+        void DrawBackground(Graphics g)
         {
             Rectangle rcDst = new Rectangle(0, 0, ClientSize.Width, ClientSize.Height);
             Rectangle rcSrc = new Rectangle(BStartX, BStartY, ClientSize.Width, ClientSize.Height);
-            g.DrawImage(Background.Img, rcDst, rcSrc, GraphicsUnit.Pixel);
+
+            if (Fstate == 3)
+            {
+                rcSrc = new Rectangle(0, 0, Background[1].Img.Width, Background[1].Img.Height);
+            }
+            g.DrawImage(Background[Background[0].IF].Img, rcDst, rcSrc, GraphicsUnit.Pixel);
         }
 
         void Drawfloor(Graphics g)
@@ -1883,33 +1927,78 @@ namespace key_of_shadows
                 g.DrawImage(Start[Start[0].cf].img, rcDst, rcSrc, GraphicsUnit.Pixel);
             }
         }
+        void DrawAbility(Graphics g)
+        {
+            for (int i = 0; i < Ability.Count; i++)
+            {
+                if (Ability[i].cf == 1)
+                {
+                    if (i == 0)
+                    {
+                        g.DrawImage(Ability[i].img, Ability[i].x, Ability[i].y);
+                    }
+                    else
+                    {
+                        g.DrawImage(Ability[i].img, Ability[i].x - BStartX, Ability[i].y - BStartY);
+                    }
+                }
+            }
+        }
+        bool CheckAbility()
+        {
+            if (Hero.Y - 20 < Ability[1].y && Hero.Y + Hero.Idler[0].Height > Ability[1].y && Hero.X > Ability[1].x && Hero.X < Ability[1].x + 200)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        void CreateAbility()
+        {
+            Tile pnn = new Tile();
+            pnn.img = new Bitmap("mbullet2.png");
+            pnn.x = ClientSize.Width - pnn.img.Width - 100;
+            pnn.y = 20;
+            Ability.Add(pnn);
+
+            pnn = new Tile();
+            pnn.img = new Bitmap("mbullet.png");
+            pnn.x = tables[2].x + tables[2].img.Width - pnn.img.Width - 30;
+            pnn.y = tables[2].y - 10;
+            pnn.cf = 1;
+            Ability.Add(pnn);
+        }
 
         void DrawMiniGame(Graphics g)
         {
             if (Fstate == 2)
             {
                 Rectangle rsrc = new Rectangle(0, 0, Game.Background.Width, Game.Background.Height);
-                Rectangle rdist = new Rectangle(0, Game.ystart, ClientSize.Width, ClientSize.Height);
-                Rectangle rdist2 = new Rectangle(0, Game.ystart2, ClientSize.Width, ClientSize.Height);
+                Rectangle rdist = new Rectangle(0, Game.yStart, ClientSize.Width, ClientSize.Height);
+                Rectangle rdist2 = new Rectangle(0, Game.yStart2, ClientSize.Width, ClientSize.Height);
 
                 g.DrawImage(Game.Background, rdist, rsrc, GraphicsUnit.Pixel);
                 g.DrawImage(Game.Background, rdist2, rsrc, GraphicsUnit.Pixel);
-                Game.ystart += 50;
-                Game.ystart2 += 50;
+                Game.yStart += 50;
+                Game.yStart2 += 50;
 
-                if (Game.ystart >= ClientSize.Height)
+                if (Game.yStart >= ClientSize.Height)
                 {
-                    Game.ystart = Game.ystart2 - ClientSize.Height;
+                    Game.yStart = Game.yStart2 - ClientSize.Height;
                 }
-                if (Game.ystart2 >= ClientSize.Height)
+                if (Game.yStart2 >= ClientSize.Height)
                 {
-                    Game.ystart2 = Game.ystart - ClientSize.Height;
+                    Game.yStart2 = Game.yStart - ClientSize.Height;
                 }
                 DrawRocketBullet(g);
+                if (Game.State == 2)
+                {
+                    DrawBossBullets(g);
+                }
                 g.DrawImage(Game.Rocket.img, Game.Rocket.x, Game.Rocket.y);
                 SolidBrush b = new SolidBrush(Color.White);
                 Font f = new Font("Comic Sans MS", 18, FontStyle.Bold);
-                g.DrawString(Game.Health.ToString(), f, b, 60, 20);
+                g.DrawString(Game.RocketHealth.ToString(), f, b, 60, 20);
                 g.DrawImage(Game.Heart, 20, 20);
 
             }
@@ -1917,10 +2006,10 @@ namespace key_of_shadows
 
         void DrawRocketBullet(Graphics g)
         {
-            for (int i = 0; i < Game.Bullets.Count; i++)
+            for (int i = 0; i < Game.RocketBullets.Count; i++)
             {
-                g.DrawImage(Game.Bullets[i].imgs[Game.Rocket.cf], Game.Bullets[i].x, Game.Bullets[i].y);
-                Game.Bullets[i].y -= 30;
+                g.DrawImage(Game.RocketBullets[i].imgs[Game.Rocket.cf], Game.RocketBullets[i].x, Game.RocketBullets[i].y);
+                Game.RocketBullets[i].y -= 30;
             }
         }
 
@@ -1956,24 +2045,39 @@ namespace key_of_shadows
                 Tile pt = Game.Eggs[i];
                 pt.y += 30;
             }
-            isRocketHit();
+            isRocketHit(Game.Eggs);
         }
-        void isRocketHit()
+        void isRocketHit(List<Tile> pb)
         {
-            for (int j = 0; j < Game.Eggs.Count; j++)
+            for (int j = 0; j < pb.Count; j++)
             {
-                Tile pt = Game.Eggs[j];
-                if (pt.y > Game.Rocket.y && pt.x > Game.Rocket.x && pt.x < Game.Rocket.x + Game.Rocket.img.Width)
+                Tile pt = pb[j];
+                if (pt.y + Game.Rocket.img.Height > Game.Rocket.y && pt.y < Game.Rocket.y && pt.x > Game.Rocket.x && pt.x < Game.Rocket.x + Game.Rocket.img.Width)
                 {
-                    Game.Eggs.Remove(pt);
-                    Game.Health--;
+                    pb.Remove(pt);
+                    Game.RocketHealth--;
                 }
             }
-            if (Game.Health == 0)
+            if (Game.RocketHealth <= 0)
             {
                 Fstate = 1;
             }
         }
+
+        void isBossHit()
+        {
+            Tile pBoss = Game.Boss;
+            for (int j = 0; j < Game.RocketBullets.Count; j++)
+            {
+                Tile pt2 = Game.RocketBullets[j];
+                if (pt2.y < pBoss.y + pBoss.img.Height && pt2.y + pt2.imgs[0].Height > pBoss.y + pBoss.img.Height && pt2.x > pBoss.x && pt2.x < pBoss.x + pBoss.img.Width)
+                {
+                    Game.BossHealth--;
+                    Game.RocketBullets.Remove(pt2);
+                }
+            }
+        }
+
         void CreateEgg()
         {
             Random r = new Random();
@@ -2026,16 +2130,95 @@ namespace key_of_shadows
             for (int i = 0; i < Game.Chickens.Count; i++)
             {
                 Tile pt = Game.Chickens[i];
-                for (int j = 0; j < Game.Bullets.Count; j++)
+                for (int j = 0; j < Game.RocketBullets.Count; j++)
                 {
-                    Tile pt2 = Game.Bullets[j];
+                    Tile pt2 = Game.RocketBullets[j];
                     if (pt2.y < pt.y + pt.imgs[0].Height && pt2.y + pt2.imgs[0].Height > pt.y + pt.imgs[0].Height && pt2.x > pt.x && pt2.x < pt.x + pt.imgs[0].Width)
                     {
                         Game.Chickens.Remove(pt);
-                        Game.Bullets.Remove(pt2);
+                        Game.RocketBullets.Remove(pt2);
+                        if (Game.Chickens.Count == 0)
+                        {
+                            Game.State = 2;
+                        }
                     }
                 }
             }
+        }
+        void MoveBossBullets()
+        {
+            for (int i = 0; i < Game.BossBullets.Count; i++)
+            {
+                Tile pt = Game.BossBullets[i];
+                pt.y += 80;
+            }
+            isRocketHit(Game.BossBullets);
+        }
+
+        void DrawBossBullets(Graphics g)
+        {
+            for (int i = 0; i < Game.BossBullets.Count; i++)
+            {
+                Tile pt = Game.BossBullets[i];
+                g.DrawImage(pt.img, pt.x, pt.y);
+            }
+        }
+
+        void CreateBossBullet()
+        {
+            Random r = new Random();
+            if (r.Next(0, 2) == 1)
+            {
+                Tile pnn = new Tile();
+                pnn.img = new Bitmap("minigame\\bullet2.png");
+                pnn.x = Game.Boss.x + Game.Boss.img.Width / 2 - pnn.img.Width / 2;
+                pnn.y = Game.Boss.y + Game.Boss.img.Height;
+                Game.BossBullets.Add(pnn);
+            }
+        }
+
+        void MoveBoss()
+        {
+            Game.Boss.x += Game.BossMovement[Game.IM];
+            Game.IM = (Game.IM + 1) % Game.BossMovement.Length;
+            isBossHit();
+
+            if (Game.Boss.x < 0)
+            {
+                Game.Boss.x = 0;
+            }
+            else if (Game.Boss.x > ClientSize.Width - Game.Boss.img.Width)
+            {
+                Game.Boss.x = ClientSize.Width - Game.Boss.img.Width;
+            }
+            if (Game.BossHealth <= 0)
+            {
+                Game.Boss = null;
+                Key[0].cf = 1;
+                Key[1].cf = 0;
+                Key[1].x = Key[1].y = 0;
+                Fstate = 1;
+            }
+        }
+
+        void DrawBoss(Graphics g)
+        {
+            Pen p = new Pen(Color.DarkRed, 5);
+            SolidBrush b = new SolidBrush(Color.DarkRed);
+            int x = Game.Boss.x + 50;
+            for (int i = 0; i < Game.BossHealth; i++)
+            {
+                g.FillRectangle(b, x, Game.Boss.y - 30, 30, 20);
+                x += 30;
+            }
+            g.DrawImage(Game.Boss.img, Game.Boss.x, Game.Boss.y);
+        }
+
+        void CreateBoss()
+        {
+            Game.Boss.img = new Bitmap("minigame\\boss.png");
+            Game.Boss.x = 200;
+            Game.Boss.y = 100;
         }
 
         void CreateChickens()
@@ -2073,10 +2256,9 @@ namespace key_of_shadows
         {
             Tile pnn = new Tile();
             pnn.imgs.Add(new Bitmap("minigame\\bullet1.png"));
-            pnn.imgs.Add(new Bitmap("minigame\\bullet2.png"));
             pnn.x = Game.Rocket.x + Game.Rocket.img.Width / 2 - pnn.imgs[0].Width / 2;
             pnn.y = Game.Rocket.y;
-            Game.Bullets.Add(pnn);
+            Game.RocketBullets.Add(pnn);
         }
 
         void CreateMiniGame()
@@ -2086,9 +2268,10 @@ namespace key_of_shadows
             Game.Rocket.y = ClientSize.Height - Game.Rocket.img.Height - 50;
             Game.Rocket.x = ClientSize.Width / 2 - Game.Rocket.img.Width / 2;
 
-            Game.ystart2 = Game.ystart - ClientSize.Height;
+            Game.yStart2 = Game.yStart - ClientSize.Height;
             CreateChickens();
             Game.Heart = new Bitmap("minigame\\heart.png");
+            CreateBoss();
         }
         void CreateStartMenu()
         {
@@ -2104,8 +2287,26 @@ namespace key_of_shadows
         {
             Tile pnn = new Tile();
             pnn.img = new Bitmap("healer.png");
-            pnn.x = tables[2].x + tables[2].img.Width / 2 - pnn.img.Width - 30;
-            pnn.y = tables[2].y - 10;
+            pnn.x = tables[0].x + tables[0].img.Width / 2 - pnn.img.Width - 30;
+            pnn.y = tables[0].y - 15;
+            Healers.Add(pnn);
+
+            pnn = new Tile();
+            pnn.img = new Bitmap("healer.png");
+            pnn.x = tables[1].x + tables[1].img.Width - pnn.img.Width - 30;
+            pnn.y = tables[1].y - 15;
+            Healers.Add(pnn);
+
+            //pnn = new Tile();
+            //pnn.img = new Bitmap("healer.png");
+            //pnn.x = tables[2].x + tables[2].img.Width / 2 - pnn.img.Width - 30;
+            //pnn.y = tables[2].y - 10;
+            //Healers.Add(pnn);
+
+            pnn = new Tile();
+            pnn.img = new Bitmap("healer.png");
+            pnn.x = tables[4].x + tables[4].img.Width - pnn.img.Width - 30;
+            pnn.y = tables[4].y - 10;
             Healers.Add(pnn);
         }
         void CreateKey()
@@ -2118,16 +2319,24 @@ namespace key_of_shadows
 
             pnn = new Tile();
             pnn.img = new Bitmap("5.png");
-            pnn.x = tables[2].x + tables[2].img.Width - pnn.img.Width - 30;
-            pnn.y = tables[2].y + 20;
+            pnn.x = tables[3].x + tables[3].img.Width / 2 - pnn.img.Width - 30;
+            pnn.y = tables[3].y + 20;
             pnn.cf = 1;
             Key.Add(pnn);
         }
-        void Createground()
+        void CreateBackground()
         {
-            Background.Img = new Bitmap("map.png");
-            Background.X = 0;
-            Background.Y = 0;
+            CActor pnn = new CActor();
+            pnn.Img = new Bitmap("map.png");
+            pnn.X = 0;
+            pnn.Y = 0;
+            Background.Add(pnn);
+
+            pnn = new CActor();
+            pnn.Img = new Bitmap("map2.png");
+            pnn.X = 0;
+            pnn.Y = 0;
+            Background.Add(pnn);
         }
         void Createfloor()
         {
@@ -2171,7 +2380,7 @@ namespace key_of_shadows
             pnn.img = new Bitmap("pillars\\p21.png");
             walls.Add(pnn);
         }
-        void createtable()
+        void CreateTables()
         {
             Tile pnn = new Tile();
             pnn.img = new Bitmap("Tables\\table-2.png");
@@ -2180,7 +2389,7 @@ namespace key_of_shadows
             tables.Add(pnn);
             pnn = new Tile();
             pnn.img = new Bitmap("Tables\\table-2.png");
-            pnn.x = 840 + walls[2].img.Width + 30;
+            pnn.x = 1830 + walls[2].img.Width + 30;
             pnn.y = floor[1].y - pnn.img.Height;
             tables.Add(pnn);
             pnn = new Tile();
@@ -2320,7 +2529,7 @@ namespace key_of_shadows
             {
                 pnn.imgs.Add(new Bitmap("portals\\redp" + i + ".png"));
             }
-            pnn.x = Background.Img.Width - pnn.imgs[0].Width - 50;
+            pnn.x = Background[Background[0].IF].Img.Width - pnn.imgs[0].Width - 50;
             pnn.y = floor[4].y - floor[3].h - pnn.imgs[0].Height + 25;
             pnn.cf = 0;
             portals.Add(pnn);
@@ -2626,7 +2835,7 @@ namespace key_of_shadows
         }
         bool CheckGravity()
         {
-            if (Hero.State != 9 && (ctJump > JumpLimit || ctJump == 0))
+            if (Hero.State != 9 && (ctJump > JumpLimit || ctJump == 0) && Fstate == 1)
             {
                 if (Hero.X > Elevator.X && Hero.X + Hero.Idler[0].Width < Elevator.X + Elevator.Img.Width && Hero.Y + Hero.Idler[0].Height + 50 > Elevator.Y && Hero.Y < Elevator.Y)
                 {
@@ -2648,21 +2857,34 @@ namespace key_of_shadows
                 Hero.floor = -1;
                 Hero.Y += 25;
             }
+            else if (Hero.State != 9 && (ctJump > JumpLimit || ctJump == 0) && Fstate == 3)
+            {
+                if (Hero.Y + Hero.Idler[0].Height > ClientSize.Height - 100)
+                {
+                    Hero.Y = ClientSize.Height - Hero.Idler[0].Height - 80;
+                    return false;
+                }
+                Hero.Y += 25;
+            }
             else if (Hero.State == 9)
             {
                 Hero.floor = -1;
             }
+
             return true;
         }
         void CheckBorders()
         {
-            BStartX = Hero.X - ClientSize.Width / 2;
-            BStartY = Hero.Y - ClientSize.Height / 2;
+            if (Fstate == 1)
+            {
+                BStartX = Hero.X - ClientSize.Width / 2;
+                BStartY = Hero.Y - ClientSize.Height / 2;
 
-            if (BStartX < 0) BStartX = 0;
-            if (BStartY < 0) BStartY = 0;
-            if (BStartX > Background.Img.Width - ClientSize.Width) BStartX = Background.Img.Width - ClientSize.Width;
-            if (BStartY > Background.Img.Height - ClientSize.Height) BStartY = Background.Img.Height - ClientSize.Height;
+                if (BStartX < 0) BStartX = 0;
+                if (BStartY < 0) BStartY = 0;
+                if (BStartX > Background[Background[0].IF].Img.Width - ClientSize.Width) BStartX = Background[Background[0].IF].Img.Width - ClientSize.Width;
+                if (BStartY > Background[Background[0].IF].Img.Height - ClientSize.Height) BStartY = Background[Background[0].IF].Img.Height - ClientSize.Height;
+            }
         }
         void createdoor()
         {

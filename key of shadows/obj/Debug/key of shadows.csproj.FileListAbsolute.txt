@@ -26,5 +26,5 @@ C:\Users\Lenovo\Desktop\CS232-Project\key of shadows\obj\Debug\key of shadows.cs
 C:\Users\Lenovo\Desktop\CS232-Project\key of shadows\obj\Debug\key of shadows.csproj.CoreCompileInputs.cache
 C:\Users\Lenovo\Desktop\CS232-Project\key of shadows\obj\Debug\key of shadows.exe
 C:\Users\Lenovo\Desktop\CS232-Project\key of shadows\obj\Debug\key of shadows.pdb
-C:\Users\Zoomax\Documents\CS232\Project\CS232-Project\key of shadows\obj\Debug\key_of_shadows.HealthBar.resources
 C:\Users\Lenovo\Desktop\CS232-Project\key of shadows\obj\Debug\key_of_shadows.laser.resources
+C:\Users\Zoomax\Documents\CS232\Project\CS232-Project\key of shadows\obj\Debug\key_of_shadows.laser.resources
