@@ -651,7 +651,7 @@ namespace key_of_shadows
                 distance = distance * -1;
             }
 
-            if (Hero.floor != Skespe.floor)
+            if (Hero.floor != Skespe.floor || IsWallBetween(Skespe))
             {
                 RunMoveBehavior(Skespe);
                 return;
@@ -713,6 +713,36 @@ namespace key_of_shadows
             }
 
         }
+        bool IsWallBetween(CActor enemy)
+        {
+            int leftX;
+            int rightX;
+
+            if (enemy.X < Hero.X)
+            {
+                leftX = enemy.X;
+                rightX = Hero.X;
+            }
+            else
+            {
+                leftX = Hero.X;
+                rightX = enemy.X;
+            }
+
+            for (int i = 0; i < walls.Count; i++)
+            {
+                Tile wall = walls[i];
+
+                if (wall.x + wall.img.Width > leftX && wall.x < rightX)
+                {
+                    if (enemy.Y + enemy.Idler[0].Height > wall.y && enemy.Y < wall.y + wall.img.Height)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
         void Manageenemybehavior(CActor enemy)
         {
             if (enemy.isDead) { return; };
@@ -727,7 +757,7 @@ namespace key_of_shadows
             {
                 distance = distance * -1;
             }
-            if (distance <= enemy.DetectRange && Hero.floor == enemy.floor)
+            if (distance <= enemy.DetectRange && Hero.floor == enemy.floor && !IsWallBetween(enemy))
             {
                 RunDetectBehavior(enemy, heroWorldX);
             }
