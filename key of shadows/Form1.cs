@@ -533,7 +533,6 @@ namespace key_of_shadows
                 if (!skespestatechange)
                 {
                     skespestate = 1;
-                    skespestatechange = true;
                 }
             }
             if (distance <= Skespe.AttackRange)
@@ -878,6 +877,7 @@ namespace key_of_shadows
             }
             else if (Actor.State == 9)
             {
+                Actor.IF++;
                 if (Actor.IF >= Actor.Climbr.Count)
                 {
                     Actor.IF = 0;
