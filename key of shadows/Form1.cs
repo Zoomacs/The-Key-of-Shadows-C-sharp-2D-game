@@ -140,6 +140,9 @@ namespace key_of_shadows
         bool skespestatechange = false;
         int DemonflyCounter = 0;
         bool DemonflyDir = false;
+        int DemonBaseY = 0;   
+        int DemonState = 0;
+        bool DemonAttacked = false;
         public Form1()
         {
             WindowState = FormWindowState.Maximized;
@@ -170,8 +173,9 @@ namespace key_of_shadows
             CheckEnemyHit(Skewar);
             CheckHeroHit(Skewar);
             ManageActorAnimation(Demon);
-            Manageenemybehavior(Demon);
+            ManageDemonBehavior();
             CheckEnemyHit(Demon);
+            CheckHeroHit(Demon);
             ManageActorAnimation(Fa7l);
             Manageenemybehavior(Fa7l);
             CheckEnemyHit(Fa7l);
@@ -616,10 +620,10 @@ namespace key_of_shadows
                         enemy.State = 0;
                         enemy.IF = 0;
                         enemy.GotHit = false;
-
                         if (enemy == Demon)
                         {
-                            Demon.Y -= 40;
+                            DemonState = 2;
+                            Hero.GotHit = false;
                         }
 
                     }
@@ -663,30 +667,7 @@ namespace key_of_shadows
 
             }
         }
-        void Demonfly(CActor enemy)
-        {
-            if (enemy == Demon && !enemy.isDead)
-            {
-                if (!DemonflyDir)
-                {
-                    Demon.Y++;
-                    DemonflyCounter++;
-                    if (DemonflyCounter >= 15)
-                    {
-                        DemonflyDir = true;
-                    }
-                }
-                else
-                {
-                    Demon.Y--;
-                    DemonflyCounter--;
-                    if (DemonflyCounter <= 0)
-                    {
-                        DemonflyDir = false;
-                    }
-                }
-            }
-        }
+       
         void RunDetectBehavior(CActor enemy, int heroWorldX)
         {
             int distance = heroWorldX - enemy.X;
@@ -756,7 +737,8 @@ namespace key_of_shadows
             enemy.StunTimer = enemy.RecoveryDuration;
             if (enemy == Demon)
             {
-                Demon.Y += 40;
+                DemonState = 1;
+                DemonAttacked = true;
             }
 
         }
@@ -815,6 +797,10 @@ namespace key_of_shadows
                 if (Actor.IF >= Actor.Deadr.Count)
                 {
                     Actor.IF = Actor.Deadr.Count - 1;
+                    if (Actor == Demon) 
+                    {
+                        Demon.X = 1000000;
+                    }
                 }
             }
             else if (Actor.State == 5)
@@ -825,6 +811,10 @@ namespace key_of_shadows
                     Actor.IF = 0;
                     Actor.State = 0;
                     Actor.GotHit = false;
+                    if (Actor == Demon)
+                    {
+                        DemonState = 2;
+                    }
                 }
             }
             else if (Actor.State == 6)
@@ -934,6 +924,13 @@ namespace key_of_shadows
                             CheckDead(Skewar);
                             hit = true;
                         }
+                        if (!Demon.isDead && DemonState == 1 && ptrv.X + ptrv.Charge[ptrv.IF].Width >= Demon.X && ptrv.X < Demon.X + 80 && ptrv.floor == Demon.floor)
+                        {
+                            Demon.Health -= 5;      
+                            Demon.GotHit = true;
+                            CheckDead(Demon);
+                            hit = true;              
+                        }
                         if (!Skespe.isDead && ptrv.X + ptrv.Charge[ptrv.IF].Width >= Skespe.X && ptrv.X < Skespe.X + 50 && ptrv.floor == Skespe.floor)
                         {
                             Skespe.Health -= 5;
@@ -973,6 +970,134 @@ namespace key_of_shadows
                             i--;
                         }
                     }
+                }
+            }
+        }
+        void ManageDemonBehavior()
+        {
+            if (Demon.isDead) return;
+            if (Demon.IsStunned)
+            {
+                RunStunTimer(Demon);
+                return;
+            }
+
+            int distToHeroX;
+            if (Hero.X >= Demon.X)
+            {
+                distToHeroX = Hero.X - Demon.X;
+            }
+            else
+            {
+                distToHeroX = Demon.X - Hero.X;
+            }
+
+            bool heroInSight = distToHeroX <= Demon.DetectRange && Hero.floor == Demon.floor;
+
+            if (DemonState == 2)
+            {
+                Demon.State = 1;
+
+                if (Demon.Y > DemonBaseY)
+                {
+                    Demon.Y -= 15;
+                }
+                else
+                {
+                    Demon.Y = DemonBaseY;
+                    DemonState = 0;
+                    DemonAttacked = false;
+                }
+                return;
+            }
+
+            if (DemonState == 1)
+            {
+                Demon.State = 1;
+
+                if (distToHeroX > Demon.Speed)
+                {
+                    if (Demon.X < Hero.X) { Demon.X += Demon.Speed; Demon.D = 1; }
+                    else { Demon.X -= Demon.Speed; Demon.D = -1; }
+                }
+
+                int targetY = Hero.Y + (Hero.Idler[0].Height / 2) - (Demon.Idler[0].Height / 2);
+
+                if (Demon.Y < targetY - 15) Demon.Y += 15;
+                else if (Demon.Y > targetY + 15) Demon.Y -= 15;
+                else Demon.Y = targetY;
+
+                int diffY;
+                if (Demon.Y >= targetY)
+                {
+                    diffY = Demon.Y - targetY;
+                }
+                else
+                {
+                    diffY = targetY - Demon.Y;
+                }
+
+                if (distToHeroX <= Demon.AttackRange && diffY <= 20)
+                {
+                    Demon.State = 5;
+                    Demon.IF = 0;
+                    Demon.IsStunned = true;
+                    Demon.StunTimer = Demon.RecoveryDuration;
+                }
+                else if (!heroInSight)
+                {
+                    DemonState = 2;
+                }
+
+                return;
+            }
+
+            if (DemonState == 0)
+            {
+                int diffBaseY;
+                if (Demon.Y >= DemonBaseY)
+                {
+                    diffBaseY = Demon.Y - DemonBaseY;
+                }
+                else
+                {
+                    diffBaseY = DemonBaseY - Demon.Y;
+                }
+
+                if (heroInSight && diffBaseY <= 20)
+                {
+                    DemonState = 1;
+                    return;
+                }
+
+                if (!DemonflyDir) { Demon.Y++; DemonflyCounter++; if (DemonflyCounter >= 15) DemonflyDir = true; }
+                else { Demon.Y--; DemonflyCounter--; if (DemonflyCounter <= 0) DemonflyDir = false; }
+
+                if (Demon.State == 0)
+                {
+                    Demon.IdleTimer--;
+                    if (Demon.IdleTimer <= 0)
+                    {
+                        Demon.State = 1;
+                        Demon.D *= -1;
+                    }
+                    return;
+                }
+
+                Demon.State = 1;
+                Demon.X += Demon.Speed * Demon.D;
+
+                if (Demon.D == 1 && Demon.X >= Demon.endpoint)
+                {
+                    Demon.X = Demon.endpoint;
+                    Demon.State = 0;
+                    Demon.IdleTimer = 15;
+                }
+                else if (Demon.D == -1 && Demon.X <= Demon.Startpoint)
+                {
+                    Demon.X = Demon.Startpoint;
+                    Demon.State = 0;
+                    Demon.IdleTimer = 15;
                 }
             }
         }
@@ -2186,14 +2311,15 @@ namespace key_of_shadows
                 if (i <= 4) { Demon.Idlel.Add(new Bitmap("demon\\demonL\\idle\\demonideal" + i + ".png")); }
             }
             Demon.X = walls[0].x + walls[0].img.Width + 100;
-            Demon.Y = floor[4].y - Demon.Idler[0].Height - 100;
+            Demon.Y = floor[4].y - Demon.Idler[0].Height - 200;
+            DemonBaseY = Demon.Y;
             Demon.State = 0;
             Demon.Health = 40;
             Demon.Startpoint = walls[0].x + walls[0].img.Width + 100;
             Demon.endpoint = portals[0].x - 100;
             Demon.D = 1;
             Demon.IdleTimer = 15;
-            Demon.DetectRange = 300;
+            Demon.DetectRange = 200;
             Demon.AttackRange = 80;
             Demon.Speed = 14;
             Demon.RecoveryDuration = 15;
