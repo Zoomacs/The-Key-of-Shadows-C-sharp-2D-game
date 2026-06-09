@@ -5,6 +5,12 @@ using System.Windows.Forms;
 
 namespace key_of_shadows
 {
+    public class laser
+    {
+        public int X, Y, W, H,  D;
+        public bool held = true;
+        public int strmax = 800;
+    }
     public class HealthBar
     {
         public int X, Y;
@@ -125,6 +131,7 @@ namespace key_of_shadows
         Elevator Elevator = new Elevator();
         CActor Background = new CActor();
         MiniGame Game = new MiniGame();
+        List<laser> lasers = new List<laser>();
         int BStartX, BStartY;
         int Fstate = 0;
         bool keyW;
@@ -143,6 +150,8 @@ namespace key_of_shadows
         int DemonBaseY = 0;   
         int DemonState = 0;
         bool DemonAttacked = false;
+
+        bool createlas = false;
         public Form1()
         {
             WindowState = FormWindowState.Maximized;
@@ -194,6 +203,7 @@ namespace key_of_shadows
             DrawDubb(CreateGraphics());
             CheckHeroHealth();
             MoveElevator();
+            managelaser();
             if (Fstate == 2)
             {
                 MoveRocket();
@@ -331,6 +341,11 @@ namespace key_of_shadows
                     {
                         Fstate = 2;
                     }
+                    if (e.KeyCode == Keys.J && !createlas)
+                    {
+                        createlaser();
+                        createlas = true;
+                    }
                 }
             }
             else if (Fstate == 2)
@@ -349,6 +364,122 @@ namespace key_of_shadows
                 }
             }
         }
+        void drawlaser (Graphics g)
+        {
+            for(int i = 0; i < lasers.Count; i++)
+            {
+                laser ptrv = lasers[i];
+                Brush br = new SolidBrush(Color.Red);
+                Brush br2 = new SolidBrush(Color.DarkRed);
+                int drawX = ptrv.X - BStartX;
+                int drawY = ptrv.Y - BStartY;
+                g.FillRectangle(br, drawX, drawY, ptrv.W, 20);
+                g.FillRectangle(br2, drawX, drawY, ptrv.W, 7);
+                g.FillRectangle(br2, drawX, drawY+17, ptrv.W, 3);
+            }
+            
+        }
+        void createlaser ()
+        {
+            laser pnn = new laser();
+            pnn.Y = pnn.Y = Hero.Y + 40;
+            pnn.D = Hero.D;
+            if (Hero.D == 1)
+            {
+                pnn.X = Hero.X + Hero.Idlel[0].Width;
+            }
+            else
+            {
+                pnn.X = Hero.X - Hero.Idlel[0].Width;
+            }
+            lasers.Add(pnn);
+        }
+        void managelaser()
+        {
+            for (int i = lasers.Count - 1; i >= 0; i--)
+            {
+                laser ptrv = lasers[i];
+                bool destroyLaser = false;
+
+                if (ptrv.W < ptrv.strmax && ptrv.held)
+                {
+                    ptrv.W += 60;
+                    if (ptrv.D == -1)
+                    {
+                        ptrv.X -= 60;
+                    }
+                }
+
+                if (!ptrv.held)
+                {
+                    if (ptrv.D == 1)
+                    {
+                        ptrv.X += 60;
+                    }
+                    else
+                    {
+                        ptrv.X -= 60;
+                    }
+                }
+
+                if (ptrv.X > Background.Img.Width || ptrv.X + ptrv.W < 0)
+                {
+                    destroyLaser = true;
+                }
+
+                if (!destroyLaser)
+                {
+                    CActor[] activeEnemies = { Demon, Fa7l, Skespe, Skewar, Sat };
+                    for (int e = 0; e < activeEnemies.Length; e++)
+                    {
+                        CActor enemy = activeEnemies[e];
+
+                        if (!enemy.isDead && enemy.floor == Hero.floor)
+                        {
+                            if (ptrv.X <= enemy.X + enemy.Idler[0].Width && ptrv.X + ptrv.W >= enemy.X &&
+                                ptrv.Y <= enemy.Y + enemy.Idler[0].Height && ptrv.Y + 30 >= enemy.Y)
+                            {
+                                enemy.Health -= 10;
+                                enemy.GotHit = true;
+                                enemy.IF = 0;
+                                CheckDead(enemy);
+
+                                destroyLaser = true;
+                                if (ptrv.held)
+                                {
+                                    createlas = false;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (!destroyLaser)
+                {
+                    for (int w = 0; w < walls.Count; w++)
+                    {
+                        Tile wall = walls[w];
+
+                        if (ptrv.X <= wall.x + wall.img.Width && ptrv.X + ptrv.W >= wall.x &&
+                            ptrv.Y <= wall.y + wall.img.Height && ptrv.Y + 30 >= wall.y)
+                        {
+                            destroyLaser = true;
+                            if (ptrv.held)
+                            {
+                                createlas = false;
+                            }
+                            break;
+                        }
+                    }
+                }
+
+                if (destroyLaser)
+                {
+                    lasers.RemoveAt(i);
+                }
+            }
+        }
         private void Form1_KeyUp(object sender, KeyEventArgs e)
         {
             if (Hero.State == 1)
@@ -361,6 +492,11 @@ namespace key_of_shadows
             if (e.KeyCode == Keys.S) { keyS = false; }
             if (e.KeyCode == Keys.D) { keyD = false; }
             if (e.KeyCode == Keys.E) { keyE = false; }
+            if(e.KeyCode == Keys.J && lasers.Count > 0)
+            {
+                lasers[lasers.Count - 1].held = false;
+                createlas = false;
+            }
 
         }
 
@@ -1317,6 +1453,7 @@ namespace key_of_shadows
             DrawKey(g2);
             DrawHealers(g2);
             DrawStartMenu(g2);
+            drawlaser(g2);
             if (Fstate == 2)
             {
                 DrawMiniGame(g2);
