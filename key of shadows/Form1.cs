@@ -1090,7 +1090,7 @@ namespace key_of_shadows
                             CheckDead(Skewar);
                             hit = true;
                         }
-                        if (!Demon.isDead && DemonState == 1 && ptrv.X + ptrv.Charge[ptrv.IF].Width >= Demon.X && ptrv.X < Demon.X + 80 && ptrv.floor == Demon.floor)
+                        if (!Demon.isDead && DemonState == 1 && ptrv.X + ptrv.Charge[ptrv.IF].Width >= Demon.X && ptrv.X < Demon.X + Demon.Idler[0].Width && ptrv.Y + ptrv.Charge[ptrv.IF].Height >= Demon.Y && ptrv.Y < Demon.Y + Demon.Idler[0].Height)
                         {
                             Demon.Health -= 5;      
                             Demon.GotHit = true;
@@ -1339,11 +1339,9 @@ namespace key_of_shadows
                 for (int i = 0; i < Fireball.Count; i++)
                 {
                     ball ptrv = Fireball[i];
-                    if (ptrv.W == 1 && ptrv.floor == enemy.floor)
+                    if (ptrv.W == 1)
                     {
-                        int fireballWorldX = ptrv.X;
-                        int enemyWidth = 50;
-                        if (fireballWorldX + ptrv.Charge[ptrv.IF].Width >= enemy.X && fireballWorldX < enemy.X + enemyWidth && Hero.floor == enemy.floor)
+                        if (ptrv.X + ptrv.Charge[ptrv.IF].Width >= enemy.X && ptrv.X < enemy.X + enemy.Idler[0].Width && ptrv.Y + ptrv.Charge[ptrv.IF].Height >= enemy.Y && ptrv.Y < enemy.Y + enemy.Idler[0].Height)
                         {
                             enemy.Health -= 5;
                             enemy.IF = 0;
@@ -2486,7 +2484,7 @@ namespace key_of_shadows
             Demon.endpoint = portals[0].x - 100;
             Demon.D = 1;
             Demon.IdleTimer = 15;
-            Demon.DetectRange = 200;
+            Demon.DetectRange = 400;
             Demon.AttackRange = 80;
             Demon.Speed = 14;
             Demon.RecoveryDuration = 15;
