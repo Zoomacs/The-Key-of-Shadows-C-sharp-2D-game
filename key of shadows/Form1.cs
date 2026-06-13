@@ -306,7 +306,11 @@ namespace key_of_shadows
             createdoor();
             CreateMiniGame();
             CreateAbility();
-            
+            //Fstate = 3;
+            //Background[0].IF = 1;
+            //Hero.Y = ClientSize.Height - Hero.Idler[0].Height - 90;
+            //BStartX = 0;
+            //BStartY = 0;
         }
 
         private void Form1_Paint(object sender, PaintEventArgs e)
@@ -1034,87 +1038,90 @@ namespace key_of_shadows
                     }
                 }
             }
-            else if (Actor.State == 5)
-            {
-                Actor.IF++;
-                if (Actor.IF >= Actor.Attack1r.Count)
-                {
-                    Actor.IF = 0;
-                    Actor.State = 0;
-                    Actor.GotHit = false;
-                    if (Actor == Demon)
-                    {
-                        DemonState = 2;
-                    }
-                    if (Actor == Demon2) { DemonState2 = 2; }  
-                    if (Actor == Demon3) { DemonState3 = 2; }
-                }
-            }
-            else if (Actor.State == 6)
-            {
-                Actor.IF++;
-                if (Actor.IF >= Actor.Attack2r.Count)
-                {
-                    if (Actor == Hero)
-                    {
-                        ball pnn = new ball();
-                        pnn.X = (Hero.X) + Hero.Attack2r[Hero.Attack2r.Count - 1].Width;
-                        pnn.Y = Hero.Y;
-                        pnn.W = 1;
-                        pnn.floor = Actor.floor;
-                        pnn.D = Hero.D;
-                        if (Hero.D == 1)
-                        {
-                            pnn.X = Hero.X + Hero.Attack2r[Hero.Attack2r.Count - 1].Width;
-                        }
-                        else
-                        {
-                            pnn.X = Hero.X - Hero.Attack2l[Hero.Attack2l.Count - 1].Width;
-                        }
-                        for (int i = 1; i <= 12; i++)
-                        {
-                            if (pnn.D == 1)
-                            {
-                                pnn.Charge.Add(new Bitmap("hero\\heroR\\charge\\herocharge" + i + ".png"));
-                            }
-                            else
-                            {
-                                pnn.Charge.Add(new Bitmap("hero\\heroL\\charge\\herocharge" + i + "_result.png"));
-                            }
-
-                        }
-                        pnn.type = 1;
-                        Fireball.Add(pnn);
-
-                    }
-                    Actor.IF = 0;
-                    Actor.State = 0;
-                    Actor.GotHit = false;
-
-                }
-            }
-            else if (Actor.State == 7)
-            {
-                Actor.IF++;
-                if (Actor.IF >= Actor.Attack3r.Count - 3)
-                {
-                    if (LaserOn)
-                    {
-                        Actor.IF = 6;
-                    }
-                    else
-                    {
-                        Actor.IF = 0;
-                        Actor.State = 0;
-                    }
-                }
-            }
             else if (Actor.State == 9)
             {
                 Actor.IF++;
                 if (Actor.IF >= Actor.Climbr.Count)
                 {
                     Actor.IF = 0;
+                }
+            }
+            if (!Hero.isDead)
+            {
+                if (Actor.State == 5)
+                {
+                    Actor.IF++;
+                    if (Actor.IF >= Actor.Attack1r.Count)
+                    {
+                        Actor.IF = 0;
+                        Actor.State = 0;
+                        Actor.GotHit = false;
+                        if (Actor == Demon)
+                        {
+                            DemonState = 2;
+                        }
+                        if (Actor == Demon2) { DemonState2 = 2; }
+                        if (Actor == Demon3) { DemonState3 = 2; }
+                    }
+                }
+                else if (Actor.State == 6)
+                {
+                    Actor.IF++;
+                    if (Actor.IF >= Actor.Attack2r.Count)
+                    {
+                        if (Actor == Hero)
+                        {
+                            ball pnn = new ball();
+                            pnn.X = (Hero.X) + Hero.Attack2r[Hero.Attack2r.Count - 1].Width;
+                            pnn.Y = Hero.Y;
+                            pnn.W = 1;
+                            pnn.floor = Actor.floor;
+                            pnn.D = Hero.D;
+                            if (Hero.D == 1)
+                            {
+                                pnn.X = Hero.X + Hero.Attack2r[Hero.Attack2r.Count - 1].Width;
+                            }
+                            else
+                            {
+                                pnn.X = Hero.X - Hero.Attack2l[Hero.Attack2l.Count - 1].Width;
+                            }
+                            for (int i = 1; i <= 12; i++)
+                            {
+                                if (pnn.D == 1)
+                                {
+                                    pnn.Charge.Add(new Bitmap("hero\\heroR\\charge\\herocharge" + i + ".png"));
+                                }
+                                else
+                                {
+                                    pnn.Charge.Add(new Bitmap("hero\\heroL\\charge\\herocharge" + i + "_result.png"));
+                                }
+
+                            }
+                            pnn.type = 1;
+                            Fireball.Add(pnn);
+
+                        }
+                        Actor.IF = 0;
+                        Actor.State = 0;
+                        Actor.GotHit = false;
+
+                    }
+                }
+                else if (Actor.State == 7)
+                {
+                    Actor.IF++;
+                    if (Actor.IF >= Actor.Attack3r.Count - 3)
+                    {
+                        if (LaserOn)
+                        {
+                            Actor.IF = 6;
+                        }
+                        else
+                        {
+                            Actor.IF = 0;
+                            Actor.State = 0;
+                        }
+                    }
                 }
             }
 
@@ -1841,7 +1848,7 @@ namespace key_of_shadows
 
             if (Fstate == 3)
             {
-                rcSrc = new Rectangle(BStartX, BStartY, ClientSize.Width, ClientSize.Height);
+                rcSrc = new Rectangle(0, 0, Background[1].Img.Width, Background[1].Img.Height);
             }
             g.DrawImage(Background[Background[0].IF].Img, rcDst, rcSrc, GraphicsUnit.Pixel);
         }
@@ -2502,7 +2509,8 @@ namespace key_of_shadows
             {
                 Game.Boss = null;
                 Key[0].cf = 1;
-                Key[1].cf = 1;
+                Key[1].cf = 0;
+                Key[1].x = Key[1].y = 0;
                 Fstate = 1;
             }
         }
@@ -2531,7 +2539,7 @@ namespace key_of_shadows
         {
             int x = -150, y = 50;
             Random r = new Random();
-            for (int i = 0; i < 30; i++)
+            for (int i = 0; i < 27; i++)
             {
                 Tile pnn = new Tile();
                 pnn.imgs.Add(new Bitmap("minigame\\c1.png"));
@@ -2542,7 +2550,7 @@ namespace key_of_shadows
                 Game.Chickens.Add(pnn);
                 x -= pnn.imgs[0].Width + 50;
 
-                if (i > 9 && i < 20)
+                if (i > 8 && i < 18)
                 {
                     pnn.h = 1;
                 }
@@ -2550,7 +2558,7 @@ namespace key_of_shadows
                 {
                     pnn.h = 2;
                 }
-                if (i == 9 || i == 19)
+                if (i == 8 || i == 17)
                 {
                     y += 150;
                     x = -150;
