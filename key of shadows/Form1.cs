@@ -173,6 +173,14 @@ namespace key_of_shadows
         int DemonState3 = 0;
         bool DemonAttacked3 = false;
 
+
+        Bitmap win = new Bitmap("win.png");
+        Bitmap lose = new Bitmap("lose.png");
+        Bitmap triplet = new Bitmap("Triple T.png");
+        Bitmap tripletsad = new Bitmap("Triple T Sad.png");
+
+
+
         bool createlas = false;
         public Form1()
         {
@@ -1866,13 +1874,15 @@ namespace key_of_shadows
             else if (Fstate == 4)
             {
                 g2.Clear(Color.Black);
-                Font winFont = new Font("Impact", 72, FontStyle.Bold);
-                SolidBrush textBrush = new SolidBrush(Color.Gold);
-                string winText = "YOU WIN !";
-                Size textSize = TextRenderer.MeasureText(winText, winFont);
-                int centerX = (ClientSize.Width - textSize.Width) / 2;
-                int centerY = (ClientSize.Height - textSize.Height) / 2;
-                g2.DrawString(winText, winFont, textBrush, centerX, centerY);
+                g2.DrawImage(triplet, ClientSize.Width / 2 - 100 - triplet.Width / 2, ClientSize.Height / 2 + 250 - ClientSize.Height/2);
+                g2.DrawImage(win, ClientSize.Width /2 , ClientSize.Height / 2 +150 - ClientSize.Height / 2);
+                //Font winFont = new Font("Impact", 72, FontStyle.Bold);
+                //SolidBrush textBrush = new SolidBrush(Color.Gold);
+                //string winText = "YOU WIN !";
+                //Size textSize = TextRenderer.MeasureText(winText, winFont);
+                //int centerX = (ClientSize.Width - textSize.Width) / 2;
+                //int centerY = (ClientSize.Height - textSize.Height) / 2;
+                //g2.DrawString(winText, winFont, textBrush, centerX, centerY);
             }
             if (Fstate != 2 && Fstate != 4)
             {
@@ -1887,16 +1897,19 @@ namespace key_of_shadows
 
             if (Hero.isDead)
             {
-                g2.FillRectangle(new SolidBrush(Color.FromArgb(150, 0, 0, 0)), 0, 0, ClientSize.Width, ClientSize.Height);
-                Font deadFont = new Font("Impact", 72, FontStyle.Bold);
-                Font subFont = new Font("Impact", 32, FontStyle.Bold);
-                SolidBrush redBrush = new SolidBrush(Color.DarkRed);
-                SolidBrush whiteBrush = new SolidBrush(Color.White);
-                string deadText = "YOU DIED";
-                Size deadSize = TextRenderer.MeasureText(deadText, deadFont);
-                int cx = (ClientSize.Width - deadSize.Width) / 2;
-                int cy = (ClientSize.Height - deadSize.Height) / 2 - 50;
-                g2.DrawString(deadText, deadFont, redBrush, cx, cy);
+                g2.Clear(Color.Black);
+                g2.DrawImage(tripletsad, ClientSize.Width / 2 - 100 - tripletsad.Width / 2, ClientSize.Height / 2 + 250 - ClientSize.Height/2);
+                g2.DrawImage(lose, ClientSize.Width /2 , ClientSize.Height / 2 +150 - ClientSize.Height / 2);
+                // g2.FillRectangle(new SolidBrush(Color.FromArgb(150, 0, 0, 0)), 0, 0, ClientSize.Width, ClientSize.Height);
+                //Font deadFont = new Font("Impact", 72, FontStyle.Bold);
+                //Font subFont = new Font("Impact", 32, FontStyle.Bold);
+                //SolidBrush redBrush = new SolidBrush(Color.DarkRed);
+                //SolidBrush whiteBrush = new SolidBrush(Color.White);
+                //string deadText = "YOU DIED";
+                //Size deadSize = TextRenderer.MeasureText(deadText, deadFont);
+                //int cx = (ClientSize.Width - deadSize.Width) / 2;
+                //int cy = (ClientSize.Height - deadSize.Height) / 2 - 50;
+                //g2.DrawString(deadText, deadFont, redBrush, cx, cy);
             }
         }
         void DrawBackground(Graphics g)
