@@ -121,7 +121,7 @@ namespace key_of_shadows
         CActor Skearch = new CActor();
         CActor Skespe = new CActor();
         CActor Skewar = new CActor();
-       
+
         CActor Sat = new CActor();
         List<CActor> Ladder = new List<CActor>();
         List<ball> Fireball = new List<ball>();
@@ -185,7 +185,6 @@ namespace key_of_shadows
         public Form1()
         {
             WindowState = FormWindowState.Maximized;
-            // FormBorderStyle = FormBorderStyle.None;
             KeyDown += Form1_KeyDown;
             KeyUp += Form1_KeyUp;
             MouseDown += Form1_MouseDown;
@@ -288,6 +287,10 @@ namespace key_of_shadows
                 ctEgg++;
                 ctBoss++;
             }
+            if (Hero.State != 2)
+            {
+                ctJump = 0;
+            }
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -314,11 +317,6 @@ namespace key_of_shadows
             createdoor();
             CreateMiniGame();
             CreateAbility();
-            //Fstate = 3;
-            //Background[0].IF = 1;
-            //Hero.Y = ClientSize.Height - Hero.Idler[0].Height - 90;
-            //BStartX = 0;
-            //BStartY = 0;
         }
 
         private void Form1_Paint(object sender, PaintEventArgs e)
@@ -621,7 +619,7 @@ namespace key_of_shadows
                     Fstate = 1;
                 }
             }
-            
+
         }
         private void Form1_MouseMove(object sender, MouseEventArgs e)
         {
@@ -633,7 +631,7 @@ namespace key_of_shadows
             {
                 Start[0].cf = 0;
             }
-            Text = e.X.ToString() + "   " + e.Y.ToString();
+            Text = e.X.ToString() + "   " + e.Y.ToString() + " State  " + Hero.State.ToString();
         }
 
         private void Form1_MouseUp(object sender, MouseEventArgs e)
@@ -708,7 +706,7 @@ namespace key_of_shadows
                     {
                         lasers[lasers.Count - 1].held = false;
                     }
-                   
+
                     Hero.X -= Speed;
                 }
             }
@@ -995,6 +993,7 @@ namespace key_of_shadows
         {
             if (enemy.IsStunned) { return; }
             if (Hero.isDead) { return; }
+            ctJump = 0;
             enemy.State = 5;
             enemy.IF = 0;
             enemy.IsStunned = true;
@@ -1318,15 +1317,15 @@ namespace key_of_shadows
 
                 if (distToHeroX > Demon.Speed)
                 {
-                    if (Demon.X < Hero.X) 
+                    if (Demon.X < Hero.X)
                     {
                         Demon.X += Demon.Speed;
-                        Demon.D = 1; 
+                        Demon.D = 1;
                     }
-                    else 
-                    { 
-                        Demon.X -= Demon.Speed; 
-                        Demon.D = -1; 
+                    else
+                    {
+                        Demon.X -= Demon.Speed;
+                        Demon.D = -1;
                     }
                 }
 
@@ -1824,7 +1823,7 @@ namespace key_of_shadows
                         return true;
                     }
 
-                    else if ( Hero.X - Hero.Idler[0].Width > Ladder[i].X && Hero.X < Ladder[i].X + Ladder[i].Img.Width&& Hero.Y + Hero.Idler[0].Height > Ladder[i].Y - 100 && Hero.Y + Hero.Idler[0].Height < Ladder[i].Y + Ladder[i].Img.Height && Direction == "d" && Hero.State != 1 && Hero.State != 2)
+                    else if (Hero.X - Hero.Idler[0].Width > Ladder[i].X && Hero.X < Ladder[i].X + Ladder[i].Img.Width && Hero.Y + Hero.Idler[0].Height > Ladder[i].Y - 100 && Hero.Y + Hero.Idler[0].Height < Ladder[i].Y + Ladder[i].Img.Height && Direction == "d" && Hero.State != 1 && Hero.State != 2)
                     {
                         Hero.X = Ladder[i].X + Ladder[i].Img.Width / 2 + Hero.Idler[0].Width / 2;
                         Hero.Y += Speed;
@@ -1838,7 +1837,7 @@ namespace key_of_shadows
                         return true;
                     }
                 }
-                
+
             }
             return false;
         }
@@ -1920,20 +1919,13 @@ namespace key_of_shadows
             {
                 DrawDemonAny(g2, Demon2);
                 DrawDemonAny(g2, Demon3);
-               
+
             }
             else if (Fstate == 4)
             {
                 g2.Clear(Color.Black);
-                g2.DrawImage(triplet, ClientSize.Width / 2 - 100 - triplet.Width / 2, ClientSize.Height / 2 + 250 - ClientSize.Height/2);
-                g2.DrawImage(win, ClientSize.Width /2 , ClientSize.Height / 2 +150 - ClientSize.Height / 2);
-                //Font winFont = new Font("Impact", 72, FontStyle.Bold);
-                //SolidBrush textBrush = new SolidBrush(Color.Gold);
-                //string winText = "YOU WIN !";
-                //Size textSize = TextRenderer.MeasureText(winText, winFont);
-                //int centerX = (ClientSize.Width - textSize.Width) / 2;
-                //int centerY = (ClientSize.Height - textSize.Height) / 2;
-                //g2.DrawString(winText, winFont, textBrush, centerX, centerY);
+                g2.DrawImage(triplet, ClientSize.Width / 2 - 100 - triplet.Width / 2, ClientSize.Height / 2 + 250 - ClientSize.Height / 2);
+                g2.DrawImage(win, ClientSize.Width / 2, ClientSize.Height / 2 + 150 - ClientSize.Height / 2);
             }
             if (Fstate != 2 && Fstate != 4)
             {
@@ -1949,18 +1941,8 @@ namespace key_of_shadows
             if (Hero.isDead)
             {
                 g2.Clear(Color.Black);
-                g2.DrawImage(tripletsad, ClientSize.Width / 2 - 100 - tripletsad.Width / 2, ClientSize.Height / 2 + 250 - ClientSize.Height/2);
-                g2.DrawImage(lose, ClientSize.Width /2 , ClientSize.Height / 2 +150 - ClientSize.Height / 2);
-                // g2.FillRectangle(new SolidBrush(Color.FromArgb(150, 0, 0, 0)), 0, 0, ClientSize.Width, ClientSize.Height);
-                //Font deadFont = new Font("Impact", 72, FontStyle.Bold);
-                //Font subFont = new Font("Impact", 32, FontStyle.Bold);
-                //SolidBrush redBrush = new SolidBrush(Color.DarkRed);
-                //SolidBrush whiteBrush = new SolidBrush(Color.White);
-                //string deadText = "YOU DIED";
-                //Size deadSize = TextRenderer.MeasureText(deadText, deadFont);
-                //int cx = (ClientSize.Width - deadSize.Width) / 2;
-                //int cy = (ClientSize.Height - deadSize.Height) / 2 - 50;
-                //g2.DrawString(deadText, deadFont, redBrush, cx, cy);
+                g2.DrawImage(tripletsad, ClientSize.Width / 2 - 100 - tripletsad.Width / 2, ClientSize.Height / 2 + 250 - ClientSize.Height / 2);
+                g2.DrawImage(lose, ClientSize.Width / 2, ClientSize.Height / 2 + 150 - ClientSize.Height / 2);
             }
         }
         void DrawBackground(Graphics g)
@@ -1981,7 +1963,6 @@ namespace key_of_shadows
             for (int i = 0; i < 5; i++)
             {
                 Tile ptrv = floor[i];
-                //g.DrawRectangle(pn, ptrv.x - BStartX, ptrv.y - BStartY, ptrv.w, ptrv.h);
             }
         }
         void Drawwalls(Graphics g)
@@ -1990,7 +1971,6 @@ namespace key_of_shadows
             for (int i = 0; i < 5; i++)
             {
                 Tile ptrv = walls[i];
-                // g.DrawRectangle(pn, ptrv.x - BStartX, ptrv.y - BStartY, ptrv.img.Width, ptrv.img.Height);
                 g.DrawImage(ptrv.img, ptrv.x - BStartX, ptrv.y - BStartY);
             }
         }
@@ -2000,7 +1980,6 @@ namespace key_of_shadows
             for (int i = 0; i < tables.Count; i++)
             {
                 Tile ptrv = tables[i];
-                // g.DrawRectangle(pn, ptrv.x - BStartX, ptrv.y - BStartY, ptrv.img.Width, ptrv.img.Height);
                 g.DrawImage(ptrv.img, ptrv.x - BStartX, ptrv.y - BStartY);
             }
         }
@@ -2733,12 +2712,6 @@ namespace key_of_shadows
             pnn.y = tables[1].y - 15;
             Healers.Add(pnn);
 
-            //pnn = new Tile();
-            //pnn.img = new Bitmap("healer.png");
-            //pnn.x = tables[2].x + tables[2].img.Width / 2 - pnn.img.Width - 30;
-            //pnn.y = tables[2].y - 10;
-            //Healers.Add(pnn);
-
             pnn = new Tile();
             pnn.img = new Bitmap("healer.png");
             pnn.x = tables[4].x + tables[4].img.Width - pnn.img.Width - 30;
@@ -3194,7 +3167,7 @@ namespace key_of_shadows
             Demon2.HurtStunDuration = 4;
             Demon2.floor = -1;
 
-            
+
             for (int i = 0; i < Demon.Attack1r.Count; i++) Demon3.Attack1r.Add(Demon.Attack1r[i]);
             for (int i = 0; i < Demon.Attack1l.Count; i++) Demon3.Attack1l.Add(Demon.Attack1l[i]);
             for (int i = 0; i < Demon.Deadr.Count; i++) Demon3.Deadr.Add(Demon.Deadr[i]);
