@@ -335,11 +335,13 @@ namespace key_of_shadows
                     keyW = true;
                     Hero.State = 9;
                 }
+
                 else if (e.KeyCode == Keys.S && CheckLadder("d"))
                 {
                     keyS = true;
                     Hero.State = 9;
                 }
+
                 else if (Hero.State == 0 || Hero.State == 1 || Hero.State == 2)
                 {
                     if (e.KeyCode == Keys.A || e.KeyCode == Keys.D)
@@ -385,15 +387,18 @@ namespace key_of_shadows
                             Hero.JState = true;
                         }
                     }
+
                     if (e.KeyCode == Keys.E && Fstate == 1 && Game.RocketHealth > 0 && CheckKey())
                     {
                         Fstate = 2;
                     }
+
                     else if (e.KeyCode == Keys.E && CheckAbility())
                     {
                         Ability[0].cf = 1;
                         Ability[1].cf = 0;
                     }
+
                     else if (e.KeyCode == Keys.E && CheckHealers())
                     {
                         Hero.Health += 12;
@@ -402,6 +407,7 @@ namespace key_of_shadows
                             Hero.Health = 100;
                         }
                     }
+
                     else if (e.KeyCode == Keys.E && WinCondition())
                     {
                         Fstate = 3;
@@ -410,23 +416,25 @@ namespace key_of_shadows
                         BStartX = 0;
                         BStartY = 0;
                     }
+
                     else if (e.KeyCode == Keys.E)
                     {
                         keyE = true;
                         TryTeleport();
                     }
 
-                    if (e.KeyCode == Keys.R)
+                    if (e.KeyCode == Keys.R && Hero.State != 2)
                     {
                         isAttack = true;
                         Hero.State = 6;
                     }
 
-                    if (e.KeyCode == Keys.F)
+                    if (e.KeyCode == Keys.F && Hero.State != 2)
                     {
                         createsinglefireball(Hero);
                     }
-                    if (e.KeyCode == Keys.J && !createlas)
+
+                    if (e.KeyCode == Keys.J && !createlas && Hero.State != 2)
                     {
                         createlaser();
                         createlas = true;
@@ -590,13 +598,13 @@ namespace key_of_shadows
             {
                 if (Fstate == 1 || Fstate == 3)
                 {
-                    if (e.Button == MouseButtons.Left)
+                    if (e.Button == MouseButtons.Left && Hero.State != 2)
                     {
                         isAttack = true;
                         Hero.State = 5;
                         Hero.IF = 0;
                     }
-                    if (e.Button == MouseButtons.Right)
+                    if (e.Button == MouseButtons.Right && Hero.State != 2)
                     {
                         isAttack = true;
                         LaserOn = true;
@@ -696,6 +704,11 @@ namespace key_of_shadows
                 }
                 if (Hero.X - Speed > 0)
                 {
+                    if (lasers.Count > 0)
+                    {
+                        lasers[lasers.Count - 1].held = false;
+                    }
+                   
                     Hero.X -= Speed;
                 }
             }
@@ -707,6 +720,10 @@ namespace key_of_shadows
                 }
                 if (Hero.X + Hero.Idler[0].Width + 50 < Background[Background[0].IF].Img.Width)
                 {
+                    if (lasers.Count > 0)
+                    {
+                        lasers[lasers.Count - 1].held = false;
+                    }
                     Hero.X += Speed;
                 }
             }
@@ -1763,31 +1780,65 @@ namespace key_of_shadows
         {
             for (int i = 0; i < Ladder.Count; i++)
             {
-                if (Hero.X > Ladder[i].X && Hero.X + Hero.Idler[0].Width < Ladder[i].X + Ladder[i].Img.Width && Hero.Y + Hero.Idler[0].Height > Ladder[i].Y - 30 && Hero.Y + Hero.Idler[0].Height < Ladder[i].Y + Ladder[i].Img.Height && Direction == "u" && Hero.State != 1 && Hero.State != 2)
+                if (Hero.D == 1)
                 {
-                    Hero.X = Ladder[i].X + Ladder[i].Img.Width / 2 - Hero.Idler[0].Width / 2;
-                    Hero.Y -= Speed;
-                    if (Hero.Y < Ladder[i].Y)
+                    if (Hero.X > Ladder[i].X && Hero.X + Hero.Idler[0].Width < Ladder[i].X + Ladder[i].Img.Width && Hero.Y + Hero.Idler[0].Height > Ladder[i].Y - 30 && Hero.Y + Hero.Idler[0].Height < Ladder[i].Y + Ladder[i].Img.Height && Direction == "u" && Hero.State != 1 && Hero.State != 2)
                     {
-                        Hero.Y = floor[Ladder[i].floor].y - floor[Ladder[i].floor].h - Hero.Idler[0].Height;
-                        Hero.State = 0;
-                        return false;
+                        Hero.X = Ladder[i].X + Ladder[i].Img.Width / 2 - Hero.Idler[0].Width / 2;
+                        Hero.Y -= Speed;
+                        if (Hero.Y < Ladder[i].Y)
+                        {
+                            Hero.Y = floor[Ladder[i].floor].y - floor[Ladder[i].floor].h - Hero.Idler[0].Height;
+                            Hero.State = 0;
+                            return false;
+                        }
+                        return true;
                     }
-                    return true;
-                }
-                else if (Hero.X > Ladder[i].X && Hero.X + Hero.Idler[0].Width < Ladder[i].X + Ladder[i].Img.Width && Hero.Y + Hero.Idler[0].Height > Ladder[i].Y - 100 && Hero.Y + Hero.Idler[0].Height < Ladder[i].Y + Ladder[i].Img.Height && Direction == "d" && Hero.State != 1 && Hero.State != 2)
-                {
-                    Hero.X = Ladder[i].X + Ladder[i].Img.Width / 2 - Hero.Idler[0].Width / 2;
-                    Hero.Y += Speed;
 
-                    if (Hero.Y + Hero.Idler[0].Height > Ladder[i].Y + Ladder[i].Img.Height - 70)
+                    else if (Hero.X > Ladder[i].X && Hero.X + Hero.Idler[0].Width < Ladder[i].X + Ladder[i].Img.Width && Hero.Y + Hero.Idler[0].Height > Ladder[i].Y - 100 && Hero.Y + Hero.Idler[0].Height < Ladder[i].Y + Ladder[i].Img.Height && Direction == "d" && Hero.State != 1 && Hero.State != 2)
                     {
-                        Hero.Y = floor[Ladder[i].floor + 1].y - floor[Ladder[i].floor + 1].h - Hero.Idler[0].Height;
-                        Hero.State = 0;
-                        return false;
+                        Hero.X = Ladder[i].X + Ladder[i].Img.Width / 2 - Hero.Idler[0].Width / 2;
+                        Hero.Y += Speed;
+
+                        if (Hero.Y + Hero.Idler[0].Height > Ladder[i].Y + Ladder[i].Img.Height - 70)
+                        {
+                            Hero.Y = floor[Ladder[i].floor + 1].y - floor[Ladder[i].floor + 1].h - Hero.Idler[0].Height;
+                            Hero.State = 0;
+                            return false;
+                        }
+                        return true;
                     }
-                    return true;
                 }
+                else
+                {
+                    if (Hero.X - Hero.Idler[0].Width > Ladder[i].X && Hero.X < Ladder[i].X + Ladder[i].Img.Width && Hero.Y + Hero.Idler[0].Height > Ladder[i].Y - 30 && Hero.Y + Hero.Idler[0].Height < Ladder[i].Y + Ladder[i].Img.Height && Direction == "u" && Hero.State != 1 && Hero.State != 2)
+                    {
+                        Hero.X = Ladder[i].X + Ladder[i].Img.Width / 2 + Hero.Idler[0].Width / 2;
+                        Hero.Y -= Speed;
+                        if (Hero.Y < Ladder[i].Y)
+                        {
+                            Hero.Y = floor[Ladder[i].floor].y - floor[Ladder[i].floor].h - Hero.Idler[0].Height;
+                            Hero.State = 0;
+                            return false;
+                        }
+                        return true;
+                    }
+
+                    else if ( Hero.X - Hero.Idler[0].Width > Ladder[i].X && Hero.X < Ladder[i].X + Ladder[i].Img.Width&& Hero.Y + Hero.Idler[0].Height > Ladder[i].Y - 100 && Hero.Y + Hero.Idler[0].Height < Ladder[i].Y + Ladder[i].Img.Height && Direction == "d" && Hero.State != 1 && Hero.State != 2)
+                    {
+                        Hero.X = Ladder[i].X + Ladder[i].Img.Width / 2 + Hero.Idler[0].Width / 2;
+                        Hero.Y += Speed;
+
+                        if (Hero.Y + Hero.Idler[0].Height > Ladder[i].Y + Ladder[i].Img.Height - 70)
+                        {
+                            Hero.Y = floor[Ladder[i].floor + 1].y - floor[Ladder[i].floor + 1].h - Hero.Idler[0].Height;
+                            Hero.State = 0;
+                            return false;
+                        }
+                        return true;
+                    }
+                }
+                
             }
             return false;
         }
