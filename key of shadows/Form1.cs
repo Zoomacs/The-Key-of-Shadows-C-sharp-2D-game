@@ -117,7 +117,7 @@ namespace key_of_shadows
         Tile Door = new Tile();
         Timer tt = new Timer();
         CActor Hero = new CActor();
-        CActor Fa7l = new CActor();
+        CActor tor = new CActor();
         CActor Skearch = new CActor();
         CActor Skespe = new CActor();
         CActor Skewar = new CActor();
@@ -210,10 +210,10 @@ namespace key_of_shadows
                 CheckEnemyHit(Demon);
                 CheckHeroHit(Demon);
 
-                ManageActorAnimation(Fa7l);
-                Manageenemybehavior(Fa7l);
-                CheckEnemyHit(Fa7l);
-                CheckHeroHit(Fa7l);
+                ManageActorAnimation(tor);
+                Manageenemybehavior(tor);
+                CheckEnemyHit(tor);
+                CheckHeroHit(tor);
 
                 ManageActorAnimation(Skespe);
 
@@ -290,7 +290,7 @@ namespace key_of_shadows
             createportals();
             Createwall();
             Createhero();
-            Createfa7l();
+            Createtor();
             Createskearch();
             createskespe();
             createskewar();
@@ -507,7 +507,7 @@ namespace key_of_shadows
 
                 if (!destroyLaser)
                 {
-                    CActor[] activeEnemies = { Demon, Fa7l, Skespe, Skewar, Sat };
+                    CActor[] activeEnemies = { Demon, tor, Skespe, Skewar, Sat, Demon2, Demon3 };
                     for (int e = 0; e < activeEnemies.Length; e++)
                     {
                         CActor enemy = activeEnemies[e];
@@ -578,30 +578,34 @@ namespace key_of_shadows
 
         private void Form1_MouseDown(object sender, MouseEventArgs e)
         {
-            if (Fstate == 1)
+            if (!Hero.isDead)
             {
-                if (e.Button == MouseButtons.Left)
+                if (Fstate == 1 || Fstate == 3)
                 {
-                    isAttack = true;
-                    Hero.State = 5;
-                    Hero.IF = 0;
+                    if (e.Button == MouseButtons.Left)
+                    {
+                        isAttack = true;
+                        Hero.State = 5;
+                        Hero.IF = 0;
+                    }
+                    if (e.Button == MouseButtons.Right)
+                    {
+                        isAttack = true;
+                        LaserOn = true;
+                        Hero.State = 7;
+                        Hero.IF = 0;
+                    }
                 }
-                if (e.Button == MouseButtons.Right)
+                else if (Fstate == 2)
                 {
-                    isAttack = true;
-                    LaserOn = true;
-                    Hero.State = 7;
-                    Hero.IF = 0;
+                    CreateRocketBullet();
+                }
+                if (Start[0].cf == 1 && Fstate == 0)
+                {
+                    Fstate = 1;
                 }
             }
-            else if (Fstate == 2)
-            {
-                CreateRocketBullet();
-            }
-            if (Start[0].cf == 1 && Fstate == 0)
-            {
-                Fstate = 1;
-            }
+            
         }
         private void Form1_MouseMove(object sender, MouseEventArgs e)
         {
@@ -1038,9 +1042,16 @@ namespace key_of_shadows
                     }
                 }
             }
-            else if (Actor.State == 9)
+            else if (Actor == Skespe && Actor.State == 9)
             {
                 Actor.IF++;
+                if (Actor.IF >= Actor.Climbr.Count)
+                {
+                    Actor.IF = 0;
+                }
+            }
+            else if (Actor.State == 9)
+            {
                 if (Actor.IF >= Actor.Climbr.Count)
                 {
                     Actor.IF = 0;
@@ -1151,11 +1162,11 @@ namespace key_of_shadows
                         }
                         bool hit = false;
 
-                        if (!Fa7l.isDead && ptrv.X + ptrv.Charge[ptrv.IF].Width >= Fa7l.X && ptrv.X < Fa7l.X + 50 && ptrv.floor == Fa7l.floor)
+                        if (!tor.isDead && ptrv.X + ptrv.Charge[ptrv.IF].Width >= tor.X && ptrv.X < tor.X + 50 && ptrv.floor == tor.floor)
                         {
-                            Fa7l.Health -= 5;
-                            Fa7l.GotHit = true;
-                            CheckDead(Fa7l);
+                            tor.Health -= 5;
+                            tor.GotHit = true;
+                            CheckDead(tor);
                             hit = true;
                         }
                         if (!Skewar.isDead && ptrv.X + ptrv.Charge[ptrv.IF].Width >= Skewar.X && ptrv.X < Skewar.X + 50 && ptrv.floor == Skewar.floor)
@@ -1166,6 +1177,20 @@ namespace key_of_shadows
                             hit = true;
                         }
                         if (!Demon.isDead && DemonState == 1 && ptrv.X + ptrv.Charge[ptrv.IF].Width >= Demon.X && ptrv.X < Demon.X + Demon.Idler[0].Width && ptrv.Y + ptrv.Charge[ptrv.IF].Height >= Demon.Y && ptrv.Y < Demon.Y + Demon.Idler[0].Height)
+                        {
+                            Demon.Health -= 5;
+                            Demon.GotHit = true;
+                            CheckDead(Demon);
+                            hit = true;
+                        }
+                        if (!Demon2.isDead && DemonState2 == 1 && ptrv.X + ptrv.Charge[ptrv.IF].Width >= Demon2.X && ptrv.X < Demon2.X + Demon2.Idler[0].Width && ptrv.Y + ptrv.Charge[ptrv.IF].Height >= Demon2.Y && ptrv.Y < Demon2.Y + Demon2.Idler[0].Height)
+                        {
+                            Demon.Health -= 5;
+                            Demon.GotHit = true;
+                            CheckDead(Demon);
+                            hit = true;
+                        }
+                        if (!Demon3.isDead && DemonState3 == 1 && ptrv.X + ptrv.Charge[ptrv.IF].Width >= Demon3.X && ptrv.X < Demon3.X + Demon3.Idler[0].Width && ptrv.Y + ptrv.Charge[ptrv.IF].Height >= Demon3.Y && ptrv.Y < Demon3.Y + Demon3.Idler[0].Height)
                         {
                             Demon.Health -= 5;
                             Demon.GotHit = true;
@@ -1258,14 +1283,22 @@ namespace key_of_shadows
 
                 if (distToHeroX > Demon.Speed)
                 {
-                    if (Demon.X < Hero.X) { Demon.X += Demon.Speed; Demon.D = 1; }
-                    else { Demon.X -= Demon.Speed; Demon.D = -1; }
+                    if (Demon.X < Hero.X) 
+                    {
+                        Demon.X += Demon.Speed;
+                        Demon.D = 1; 
+                    }
+                    else 
+                    { 
+                        Demon.X -= Demon.Speed; 
+                        Demon.D = -1; 
+                    }
                 }
 
                 int targetY = Hero.Y + (Hero.Idler[0].Height / 2) - (Demon.Idler[0].Height / 2);
 
-                if (Demon.Y < targetY - 15) Demon.Y += 15;
-                else if (Demon.Y > targetY + 15) Demon.Y -= 15;
+                if (Demon.Y < targetY - 15) { Demon.Y += 15; }
+                else if (Demon.Y > targetY + 15) { Demon.Y -= 15; }
                 else Demon.Y = targetY;
 
                 int diffY;
@@ -1278,7 +1311,7 @@ namespace key_of_shadows
                     diffY = targetY - Demon.Y;
                 }
 
-                if (distToHeroX <= Demon.AttackRange && diffY <= 20)
+                if (distToHeroX <= Demon.AttackRange && diffY <= 20 && !Hero.isDead)
                 {
                     Demon.State = 5;
                     Demon.IF = 0;
@@ -1794,7 +1827,7 @@ namespace key_of_shadows
                 drawportals(g2);
                 Drawladder(g2);
                 drawdoor(g2);
-                drawfa7l(g2);
+                drawtor(g2);
                 DrawDemon(g2);
                 drawSat(g2);
                 drawSkewar(g2);
@@ -1803,7 +1836,6 @@ namespace key_of_shadows
                 Drawwalls(g2);
                 drawtables(g2);
                 DrawElevator(g2);
-                drawlaser(g2);
             }
             else if (Fstate == 2)
             {
@@ -1819,6 +1851,7 @@ namespace key_of_shadows
             {
                 DrawDemonAny(g2, Demon2);
                 DrawDemonAny(g2, Demon3);
+               
             }
             else if (Fstate == 4)
             {
@@ -1839,6 +1872,21 @@ namespace key_of_shadows
                 DrawStartMenu(g2);
                 DrawKey(g2);
                 DrawAbility(g2);
+                drawlaser(g2);
+            }
+
+            if (Hero.isDead)
+            {
+                g2.FillRectangle(new SolidBrush(Color.FromArgb(150, 0, 0, 0)), 0, 0, ClientSize.Width, ClientSize.Height);
+                Font deadFont = new Font("Impact", 72, FontStyle.Bold);
+                Font subFont = new Font("Impact", 32, FontStyle.Bold);
+                SolidBrush redBrush = new SolidBrush(Color.DarkRed);
+                SolidBrush whiteBrush = new SolidBrush(Color.White);
+                string deadText = "YOU DIED";
+                Size deadSize = TextRenderer.MeasureText(deadText, deadFont);
+                int cx = (ClientSize.Width - deadSize.Width) / 2;
+                int cy = (ClientSize.Height - deadSize.Height) / 2 - 50;
+                g2.DrawString(deadText, deadFont, redBrush, cx, cy);
             }
         }
         void DrawBackground(Graphics g)
@@ -1912,49 +1960,49 @@ namespace key_of_shadows
                 g.DrawImage(Ladder[i].Img, Ladder[i].X - BStartX, Ladder[i].Y - BStartY);
             }
         }
-        void drawfa7l(Graphics g)
+        void drawtor(Graphics g)
         {
-            int frameToDraw = Fa7l.IF;
-            int drawX = Fa7l.X - BStartX;
-            int drawY = Fa7l.Y - BStartY;
+            int frameToDraw = tor.IF;
+            int drawX = tor.X - BStartX;
+            int drawY = tor.Y - BStartY;
 
-            if (Fa7l.D == 1)
+            if (tor.D == 1)
             {
-                int fa7lDrawX = drawX;
-                if (frameToDraw < Fa7l.xadd.Length)
-                    fa7lDrawX += Fa7l.xadd[frameToDraw];
+                int torDrawX = drawX;
+                if (frameToDraw < tor.xadd.Length)
+                    torDrawX += tor.xadd[frameToDraw];
 
-                if (Fa7l.State == 0 && frameToDraw < Fa7l.Idler.Count)
-                    g.DrawImage(Fa7l.Idler[frameToDraw], fa7lDrawX, drawY);
-                else if (Fa7l.State == 1 && frameToDraw < Fa7l.Walkr.Count)
-                    g.DrawImage(Fa7l.Walkr[frameToDraw], drawX, drawY);
-                else if (Fa7l.State == 3 && frameToDraw < Fa7l.Hurtr.Count)
-                    g.DrawImage(Fa7l.Hurtr[frameToDraw], drawX, drawY);
-                else if (Fa7l.State == 4 && frameToDraw < Fa7l.Deadr.Count)
-                    g.DrawImage(Fa7l.Deadr[frameToDraw], drawX, drawY);
-                else if (Fa7l.State == 5 && frameToDraw < Fa7l.Attack1r.Count)
-                    g.DrawImage(Fa7l.Attack1r[frameToDraw], drawX, drawY);
+                if (tor.State == 0 && frameToDraw < tor.Idler.Count)
+                    g.DrawImage(tor.Idler[frameToDraw], torDrawX, drawY);
+                else if (tor.State == 1 && frameToDraw < tor.Walkr.Count)
+                    g.DrawImage(tor.Walkr[frameToDraw], drawX, drawY);
+                else if (tor.State == 3 && frameToDraw < tor.Hurtr.Count)
+                    g.DrawImage(tor.Hurtr[frameToDraw], drawX, drawY);
+                else if (tor.State == 4 && frameToDraw < tor.Deadr.Count)
+                    g.DrawImage(tor.Deadr[frameToDraw], drawX, drawY);
+                else if (tor.State == 5 && frameToDraw < tor.Attack1r.Count)
+                    g.DrawImage(tor.Attack1r[frameToDraw], drawX, drawY);
                 else
-                    g.DrawImage(Fa7l.Idler[0], drawX, drawY);
+                    g.DrawImage(tor.Idler[0], drawX, drawY);
             }
             else
             {
-                int fa7lDrawX = drawX;
-                if (frameToDraw < Fa7l.xadd.Length)
-                    fa7lDrawX -= Fa7l.xadd[frameToDraw];
+                int torDrawX = drawX;
+                if (frameToDraw < tor.xadd.Length)
+                    torDrawX -= tor.xadd[frameToDraw];
 
-                if (Fa7l.State == 0 && frameToDraw < Fa7l.Idlel.Count)
-                    g.DrawImage(Fa7l.Idlel[frameToDraw], fa7lDrawX - Fa7l.Idlel[frameToDraw].Width, drawY);
-                else if (Fa7l.State == 1 && frameToDraw < Fa7l.Walkl.Count)
-                    g.DrawImage(Fa7l.Walkl[frameToDraw], drawX - Fa7l.Walkl[frameToDraw].Width, drawY);
-                else if (Fa7l.State == 3 && frameToDraw < Fa7l.Hurtl.Count)
-                    g.DrawImage(Fa7l.Hurtl[frameToDraw], drawX - Fa7l.Hurtl[frameToDraw].Width, drawY);
-                else if (Fa7l.State == 4 && frameToDraw < Fa7l.Deadl.Count)
-                    g.DrawImage(Fa7l.Deadl[frameToDraw], drawX - Fa7l.Deadl[frameToDraw].Width, drawY);
-                else if (Fa7l.State == 5 && frameToDraw < Fa7l.Attack1l.Count)
-                    g.DrawImage(Fa7l.Attack1l[frameToDraw], drawX - Fa7l.Attack1l[frameToDraw].Width, drawY);
+                if (tor.State == 0 && frameToDraw < tor.Idlel.Count)
+                    g.DrawImage(tor.Idlel[frameToDraw], torDrawX - tor.Idlel[frameToDraw].Width, drawY);
+                else if (tor.State == 1 && frameToDraw < tor.Walkl.Count)
+                    g.DrawImage(tor.Walkl[frameToDraw], drawX - tor.Walkl[frameToDraw].Width, drawY);
+                else if (tor.State == 3 && frameToDraw < tor.Hurtl.Count)
+                    g.DrawImage(tor.Hurtl[frameToDraw], drawX - tor.Hurtl[frameToDraw].Width, drawY);
+                else if (tor.State == 4 && frameToDraw < tor.Deadl.Count)
+                    g.DrawImage(tor.Deadl[frameToDraw], drawX - tor.Deadl[frameToDraw].Width, drawY);
+                else if (tor.State == 5 && frameToDraw < tor.Attack1l.Count)
+                    g.DrawImage(tor.Attack1l[frameToDraw], drawX - tor.Attack1l[frameToDraw].Width, drawY);
                 else
-                    g.DrawImage(Fa7l.Idlel[0], drawX - Fa7l.Idlel[0].Width, drawY);
+                    g.DrawImage(tor.Idlel[0], drawX - tor.Idlel[0].Width, drawY);
             }
         }
         void drawSkespe(Graphics g)
@@ -2810,7 +2858,6 @@ namespace key_of_shadows
                 if (p.cf == p.imgs.Count - 1 && CheckPortalRegion(p))
                 {
                     int dest;
-
                     if (i == 0)
                     {
                         dest = 1;
@@ -2819,11 +2866,21 @@ namespace key_of_shadows
                     {
                         dest = 0;
                     }
+
                     Tile target = portals[dest];
 
                     Hero.X = target.x + target.imgs[0].Width / 2 - Hero.Idler[0].Width / 2;
-                    Hero.Y = target.y + target.imgs[0].Height - Hero.Idler[0].Height;
-                    Hero.floor = (dest == 0) ? 3 : 2;
+
+                    if (dest == 0)
+                    {
+                        Hero.floor = 3;
+                        Hero.Y = floor[4].y - floor[4].h - Hero.Idler[0].Height;
+                    }
+                    else
+                    {
+                        Hero.floor = 2;
+                        Hero.Y = floor[2].y - floor[2].h - Hero.Idler[0].Height;
+                    }
                     return;
                 }
             }
@@ -2889,36 +2946,36 @@ namespace key_of_shadows
             Hero.floor = 0;
             Hero.D = 1;
         }
-        void Createfa7l()
+        void Createtor()
         {
             for (int i = 1; i <= 12; i++)
             {
-                if (i <= 5) { Fa7l.Attack1r.Add(new Bitmap("fa7l\\fa7lR\\attack\\attackfa7l" + i + ".png")); }
-                if (i <= 5) { Fa7l.Attack1l.Add(new Bitmap("fa7l\\fa7lL\\attack\\attackfa7l" + i + "_result.png")); }
-                if (i <= 5) { Fa7l.Deadr.Add(new Bitmap("fa7l\\fa7lR\\dead\\deadfa7l" + i + ".png")); }
-                if (i <= 5) { Fa7l.Deadl.Add(new Bitmap("fa7l\\fa7lL\\dead\\deadfa7l" + i + "_result.png")); }
-                if (i <= 3) { Fa7l.Hurtr.Add(new Bitmap("fa7l\\fa7lR\\hurt\\hurtfa7l" + i + ".png")); }
-                if (i <= 3) { Fa7l.Hurtl.Add(new Bitmap("fa7l\\fa7lL\\hurt\\hurtfa7l" + i + "_result.png")); }
-                if (i <= 10) { Fa7l.Idler.Add(new Bitmap("fa7l\\fa7lR\\idle\\idlefa7l" + i + ".png")); }
-                if (i <= 10) { Fa7l.Idlel.Add(new Bitmap("fa7l\\fa7lL\\idle\\idlefa7l" + i + "_result.png")); }
-                Fa7l.Walkr.Add(new Bitmap("fa7l\\fa7lR\\walk\\walkfa7l" + i + ".png"));
-                Fa7l.Walkl.Add(new Bitmap("fa7l\\fa7lL\\walk\\walkfa7l" + i + "_result.png"));
+                if (i <= 5) { tor.Attack1r.Add(new Bitmap("tor\\torR\\attack\\attacktor" + i + ".png")); }
+                if (i <= 5) { tor.Attack1l.Add(new Bitmap("tor\\torL\\attack\\attacktor" + i + "_result.png")); }
+                if (i <= 5) { tor.Deadr.Add(new Bitmap("tor\\torR\\dead\\deadtor" + i + ".png")); }
+                if (i <= 5) { tor.Deadl.Add(new Bitmap("tor\\torL\\dead\\deadtor" + i + "_result.png")); }
+                if (i <= 3) { tor.Hurtr.Add(new Bitmap("tor\\torR\\hurt\\hurttor" + i + ".png")); }
+                if (i <= 3) { tor.Hurtl.Add(new Bitmap("tor\\torL\\hurt\\hurttor" + i + "_result.png")); }
+                if (i <= 10) { tor.Idler.Add(new Bitmap("tor\\torR\\idle\\idletor" + i + ".png")); }
+                if (i <= 10) { tor.Idlel.Add(new Bitmap("tor\\torL\\idle\\idletor" + i + "_result.png")); }
+                tor.Walkr.Add(new Bitmap("tor\\torR\\walk\\walktor" + i + ".png"));
+                tor.Walkl.Add(new Bitmap("tor\\torL\\walk\\walktor" + i + "_result.png"));
             }
-            Fa7l.xadd = new int[] { 0, 0, 0, -8, -21, -27, 0, 0, 0, 0 };
-            Fa7l.X = 1150;
-            Fa7l.Y = floor[0].y - Fa7l.Idler[2].Height - 40;
-            Fa7l.State = 0;
-            Fa7l.Health = 11;
-            Fa7l.Startpoint = 900;
-            Fa7l.endpoint = 1400;
-            Fa7l.D = 1;
-            Fa7l.IdleTimer = 20;
-            Fa7l.DetectRange = 400;
-            Fa7l.AttackRange = 80;
-            Fa7l.Speed = 10;
-            Fa7l.RecoveryDuration = 12;
-            Fa7l.HurtStunDuration = 6;
-            Fa7l.floor = 0;
+            tor.xadd = new int[] { 0, 0, 0, -8, -21, -27, 0, 0, 0, 0 };
+            tor.X = 1150;
+            tor.Y = floor[0].y - tor.Idler[2].Height - 40;
+            tor.State = 0;
+            tor.Health = 11;
+            tor.Startpoint = 900;
+            tor.endpoint = 1400;
+            tor.D = 1;
+            tor.IdleTimer = 20;
+            tor.DetectRange = 400;
+            tor.AttackRange = 80;
+            tor.Speed = 10;
+            tor.RecoveryDuration = 12;
+            tor.HurtStunDuration = 6;
+            tor.floor = 0;
         }
         void Createskearch()
         {
