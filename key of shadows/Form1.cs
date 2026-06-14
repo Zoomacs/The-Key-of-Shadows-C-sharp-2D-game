@@ -1185,16 +1185,16 @@ namespace key_of_shadows
                         }
                         if (!Demon2.isDead && DemonState2 == 1 && ptrv.X + ptrv.Charge[ptrv.IF].Width >= Demon2.X && ptrv.X < Demon2.X + Demon2.Idler[0].Width && ptrv.Y + ptrv.Charge[ptrv.IF].Height >= Demon2.Y && ptrv.Y < Demon2.Y + Demon2.Idler[0].Height)
                         {
-                            Demon.Health -= 5;
-                            Demon.GotHit = true;
-                            CheckDead(Demon);
+                            Demon2.Health -= 5;
+                            Demon2.GotHit = true;
+                            CheckDead(Demon2);
                             hit = true;
                         }
                         if (!Demon3.isDead && DemonState3 == 1 && ptrv.X + ptrv.Charge[ptrv.IF].Width >= Demon3.X && ptrv.X < Demon3.X + Demon3.Idler[0].Width && ptrv.Y + ptrv.Charge[ptrv.IF].Height >= Demon3.Y && ptrv.Y < Demon3.Y + Demon3.Idler[0].Height)
                         {
-                            Demon.Health -= 5;
-                            Demon.GotHit = true;
-                            CheckDead(Demon);
+                            Demon3.Health -= 5;
+                            Demon3.GotHit = true;
+                            CheckDead(Demon3);
                             hit = true;
                         }
                         if (!Skespe.isDead && ptrv.X + ptrv.Charge[ptrv.IF].Width >= Skespe.X && ptrv.X < Skespe.X + 50 && ptrv.floor == Skespe.floor)
@@ -1211,9 +1211,19 @@ namespace key_of_shadows
                             CheckDead(Hero);
                             hit = true;
                         }
-                        if (ptrv.X > Background[Background[0].IF].Img.Width)
+                        if (ptrv.X > Background[Background[0].IF].Img.Width || ptrv.X < 0)
                         {
                             hit = true;
+                        }
+                        for (int w = 0; w < walls.Count; w++)
+                        {
+                            Tile wall = walls[w];
+                            if (ptrv.X + ptrv.Charge[ptrv.IF].Width >= wall.x && ptrv.X <= wall.x + wall.img.Width &&
+                                ptrv.Y + ptrv.Charge[ptrv.IF].Height >= wall.y && ptrv.Y <= wall.y + wall.img.Height)
+                            {
+                                hit = true;
+                                break;
+                            }
                         }
                         if (hit)
                         {
