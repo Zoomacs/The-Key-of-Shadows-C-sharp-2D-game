@@ -147,7 +147,7 @@ namespace key_of_shadows
         bool keyD;
         bool keyE;
         int ctJump, JumpLimit = 4;
-        int Speed = 50;
+        int Speed = 30;
         int ctEgg, ctBoss;
         int skespestate;
         bool skespestatechange = false;
@@ -1149,11 +1149,11 @@ namespace key_of_shadows
                     {
                         if (ptrv.D == 1)
                         {
-                            ptrv.X += 10;
+                            ptrv.X += 50;
                         }
                         else
                         {
-                            ptrv.X -= 10;
+                            ptrv.X -= 50;
                         }
                         ptrv.IF++;
                         if (ptrv.IF >= 5)
@@ -2782,7 +2782,7 @@ namespace key_of_shadows
             Ladder.Add(pnn);
             pnn = new CActor();
             pnn.Img = new Bitmap("ladder.png");
-            pnn.X = 2800;
+            pnn.X = 2900;
             pnn.Y = 920;
             pnn.floor = 1;
             Ladder.Add(pnn);
@@ -2965,14 +2965,14 @@ namespace key_of_shadows
             tor.X = 1150;
             tor.Y = floor[0].y - tor.Idler[2].Height - 40;
             tor.State = 0;
-            tor.Health = 11;
+            tor.Health = 100;
             tor.Startpoint = 900;
-            tor.endpoint = 1400;
+            tor.endpoint = 2400;
             tor.D = 1;
             tor.IdleTimer = 20;
-            tor.DetectRange = 400;
+            tor.DetectRange = 700;
             tor.AttackRange = 80;
-            tor.Speed = 10;
+            tor.Speed = 20;
             tor.RecoveryDuration = 12;
             tor.HurtStunDuration = 6;
             tor.floor = 0;
@@ -3007,14 +3007,14 @@ namespace key_of_shadows
             Skewar.X = 1300;
             Skewar.Y = floor[2].y - Skewar.Idler[0].Height - 30;
             Skewar.State = 0;
-            Skewar.Health = 30;
+            Skewar.Health = 50;
             Skewar.Startpoint = 1900;
             Skewar.endpoint = 2530;
             Skewar.D = 1;
             Skewar.IdleTimer = 15;
             Skewar.DetectRange = 350;
             Skewar.AttackRange = 70;
-            Skewar.Speed = 12;
+            Skewar.Speed = 15;
             Skewar.RecoveryDuration = 10;
             Skewar.HurtStunDuration = 5;
             Skewar.floor = 2;
@@ -3050,7 +3050,7 @@ namespace key_of_shadows
             Skespe.X = 2000;
             Skespe.Y = floor[3].y - Skespe.Idler[0].Height - 30;
             Skespe.State = 0;
-            Skespe.Health = 25;
+            Skespe.Health = 50;
             Skespe.Startpoint = 1800;
             Skespe.endpoint = 4000;
             Skespe.D = 1;
@@ -3143,7 +3143,7 @@ namespace key_of_shadows
             Demon3.IdleTimer = 15;
             Demon3.DetectRange = 600;
             Demon3.AttackRange = 80;
-            Demon3.Speed = 12;
+            Demon3.Speed = 15;
             Demon3.RecoveryDuration = 15;
             Demon3.HurtStunDuration = 4;
             Demon3.floor = -1;
@@ -3173,7 +3173,7 @@ namespace key_of_shadows
             Sat.IdleTimer = 15;
             Sat.DetectRange = 500;
             Sat.AttackRange = 400;
-            Sat.Speed = 8;
+            Sat.Speed = 20;
             Sat.RecoveryDuration = 45;
             Sat.HurtStunDuration = 6;
             Sat.floor = 1;
