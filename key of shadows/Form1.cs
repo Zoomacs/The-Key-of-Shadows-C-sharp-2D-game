@@ -302,7 +302,6 @@ namespace key_of_shadows
             Createwall();
             Createhero();
             Createtor();
-            Createskearch();
             createskespe();
             createskewar();
             CreateTables();
@@ -3030,17 +3029,7 @@ namespace key_of_shadows
             tor.HurtStunDuration = 6;
             tor.floor = 0;
         }
-        void Createskearch()
-        {
-            for (int i = 1; i <= 15; i++)
-            {
-                Skearch.Attack1r.Add(new Bitmap("skearch\\attack\\skearchattack" + i + ".png"));
-                if (i <= 5) { Skearch.Deadr.Add(new Bitmap("skearch\\dead\\skearchdead" + i + ".png")); }
-                if (i <= 2) { Skearch.Hurtr.Add(new Bitmap("skearch\\hurt\\skearchhurt" + i + ".png")); }
-                if (i <= 7) { Skearch.Idler.Add(new Bitmap("skearch\\idle\\skearchidle" + i + ".png")); }
-                if (i <= 8) { Skearch.Walkr.Add(new Bitmap("skearch\\walk\\skearchwalk" + i + ".png")); }
-            }
-        }
+        
 
         void createskewar()
         {
