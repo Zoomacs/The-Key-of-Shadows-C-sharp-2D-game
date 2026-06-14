@@ -317,6 +317,12 @@ namespace key_of_shadows
             createdoor();
             CreateMiniGame();
             CreateAbility();
+           //Fstate = 3;
+           //Background[0].IF = 1;
+           //Hero.Y = ClientSize.Height - Hero.Idler[0].Height - 90;
+           //BStartX = 0;
+           //BStartY = 0;
+
         }
 
         private void Form1_Paint(object sender, PaintEventArgs e)
@@ -623,7 +629,7 @@ namespace key_of_shadows
         }
         private void Form1_MouseMove(object sender, MouseEventArgs e)
         {
-            if (Start != null && e.X > 600 && e.X < 1300 && e.Y > 730 && e.Y < 880)
+            if (Start != null && e.X > 460 && e.X < 1074 && e.Y > 570 && e.Y < 690)
             {
                 Start[0].cf = 1;
             }
@@ -3056,7 +3062,7 @@ namespace key_of_shadows
             Skewar.State = 0;
             Skewar.Health = 50;
             Skewar.Startpoint = 1900;
-            Skewar.endpoint = 2530;
+            Skewar.endpoint = 2480;
             Skewar.D = 1;
             Skewar.IdleTimer = 15;
             Skewar.DetectRange = 350;
